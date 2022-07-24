@@ -1,0 +1,146 @@
+{
+  "name": "@h4ad/node-modules-packer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.ts",
+  "scripts": {
+    "prepare": "husky install",
+    "build": "rimraf lib && tsc -p tsconfig.build.json",
+    "postpack": "rimraf oclif.manifest.json",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "clean": "rm -rf ./lib/",
+    "cm": "cz",
+    "coverage": "codecov",
+    "lint": "eslint ./src/ ./test/  --fix",
+    "semantic-release": "semantic-release",
+    "pretest": "cd test/example && npm ci",
+    "test": "nyc --extension .ts --reporter=html mocha --forbid-only \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "version": "oclif readme && git add README.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/H4ad/node-modules-packer.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Vinícius Lourenço",
+    "email": "H4ad@users.noreply.github.com",
+    "url": "https://github.com/H4ad"
+  },
+  "engines": {
+    "node": ">=12.0"
+  },
+  "keywords": [
+    "dependencies",
+    "node modules",
+    "packer",
+    "pack",
+    "compact",
+    "compact node modules",
+    "pack node modules",
+    "gzip node modules",
+    "zip node modules",
+    "serverless",
+    "serverless bundler"
+  ],
+  "bugs": {
+    "url": "https://github.com/H4ad/node-modules-packer/issues"
+  },
+  "homepage": "https://github.com/H4ad/node-modules-packer#readme",
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "bin": {
+    "pack": "./bin/run"
+  },
+  "oclif": {
+    "bin": "node-modules-packer",
+    "dirname": "node-modules-packer",
+    "commands": "./lib/commands",
+    "default": "run",
+    "topicSeparator": ":",
+    "topics": {
+      "run": {
+        "description": "Pack files and node dependencies to zip file."
+      }
+    },
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins",
+      "@oclif/plugin-version",
+      "@oclif/plugin-commands",
+      "@oclif/plugin-autocomplete"
+    ]
+  },
+  "dependencies": {
+    "@h4ad/dependency-extractor": "^1.0.0",
+    "@oclif/core": "^1",
+    "@oclif/plugin-autocomplete": "^1.3.0",
+    "@oclif/plugin-commands": "^2.2.0",
+    "@oclif/plugin-help": "^5",
+    "@oclif/plugin-plugins": "^2.1.0",
+    "@oclif/plugin-version": "^1.1.1",
+    "archiver": "^5.3.1",
+    "plist": "^3.0.5",
+    "rimraf": "^3.0.2",
+    "semver": "^7.3.7",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@oclif/test": "^2",
+    "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^8.0.4",
+    "@types/archiver": "^5.3.1",
+    "@types/chai": "^4",
+    "@types/mocha": "^9.0.0",
+    "@types/mock-fs": "^4.13.1",
+    "@types/node": "12.20.43",
+    "@types/plist": "^3.0.2",
+    "@types/rimraf": "^3.0.2",
+    "@types/unzipper": "^0.10.5",
+    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/parser": "^5.12.1",
+    "c8": "^7.12.0",
+    "chai": "^4",
+    "codecov": "^3.8.3",
+    "commitizen": "^4.2.4",
+    "cz-conventional-changelog": "^3.3.0",
+    "ejs": "^3.1.6",
+    "eslint": "^8.9.0",
+    "eslint-config-oclif": "^4",
+    "eslint-config-oclif-typescript": "^1.0.2",
+    "eslint-config-prettier": "^8.4.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^6.0.0",
+    "lint-staged": "^10.5.4",
+    "mocha": "^9",
+    "mock-fs": "^5.1.2",
+    "nyc": "^15.1.0",
+    "oclif": "^3",
+    "prettier": "^2.5.1",
+    "semantic-release": "^19.0.3",
+    "tape": "^5.5.3",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.5",
+    "unzipper": "^0.10.11"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache --cache-location .eslintcache --fix"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

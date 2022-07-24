@@ -1,0 +1,26 @@
+{
+  "name": "node-modules-packer-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "is-date-object": "1.0.5"
+  },
+  "devDependencies": {
+    "is-string": "1.0.7"
+  },
+  "peerDependencies": {
+    "is-plain-object": "5.0.0",
+    "kind-of": "6.0.3"
+  },
+  "peerDependenciesMeta": {
+    "kind-of": {
+      "optional": true
+    }
+  }
+}
