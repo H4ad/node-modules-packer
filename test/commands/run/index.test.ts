@@ -1,16 +1,44 @@
-import { existsSync, statSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { Command } from '@oclif/core';
 import test, { expect } from '@oclif/test';
 import Run from '../../../src/commands/run';
 import MockFsFactory from '../../mockfs/mockfs.factory';
 import { getUnzipedFilesInMap } from '../../mockfs/unzip';
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const oldRun = Command.prototype._run;
+
 describe('when pack is called', () => {
   beforeEach(() => {
-    MockFsFactory.createMockFs();
+    // @ts-ignore
+    Command.prototype._run = function (args) {
+      MockFsFactory.createMockFs();
+
+      writeFileSync(join(MockFsFactory.DIR_PROJECT, 'deploy.zip'), 'test');
+
+      return (
+        oldRun
+          // @ts-ignore
+          .bind(this)(...args)
+          .then(result => {
+            // MockFsFactory.resetMockFs();
+
+            return result;
+          })
+          // @ts-ignore
+          .catch(err => {
+            // MockFsFactory.resetMockFs();
+
+            throw err;
+          })
+      );
+    };
   });
 
   afterEach(() => {
+    Command.prototype._run = oldRun;
+
     MockFsFactory.resetMockFs();
   });
 
@@ -169,7 +197,7 @@ describe('when pack is called', () => {
 
         const mapFiles = await getUnzipedFilesInMap(outputFilePath);
 
-        expect(mapFiles.has('./src/index.js')).to.be.true;
+        expect(mapFiles.has('src/index.js')).to.be.true;
         expect(mapFiles.has('.gitignore')).to.be.true;
       });
 
@@ -371,25 +399,6 @@ describe('when pack is called', () => {
     test
       .stdout()
       .stderr()
-      .command([
-        'run',
-        '--output-file',
-        'result.tar.gz',
-        MockFsFactory.DIR_PROJECT,
-      ])
-      .it('should generate result.tar.gz', ctx => {
-        expect(ctx.stderr).to.be.empty;
-
-        const createdTheDeployZip = existsSync(
-          join(MockFsFactory.DIR_PROJECT, 'result.tar.gz'),
-        );
-
-        expect(createdTheDeployZip).to.be.eq(true);
-      });
-
-    test
-      .stdout()
-      .stderr()
       .command(['run', '--output-file', 'result.ts', MockFsFactory.DIR_PROJECT])
       .catch(err => {
         expect(err.message).to.contain('Invalid output file extension');
@@ -449,27 +458,6 @@ describe('when pack is called', () => {
         expect(err.message).to.contain('Invalid Node Modules');
       })
       .it('should throw error if could not find node_modules');
-  });
-
-  describe('with deploy.zip already generated', () => {
-    beforeEach(() => {
-      writeFileSync(join(MockFsFactory.DIR_PROJECT, 'deploy.zip'), 'test');
-    });
-
-    test
-      .stdout()
-      .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT])
-      .it('should override the old deploy.zip', ctx => {
-        expect(ctx.stderr).to.be.empty;
-
-        const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
-        const createdTheDeployZip = existsSync(outputFilePath);
-
-        expect(createdTheDeployZip).to.be.eq(true);
-
-        expect(statSync(outputFilePath).size).to.be.greaterThan(100);
-      });
   });
 
   describe('with headless', () => {

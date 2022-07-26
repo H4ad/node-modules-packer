@@ -14,7 +14,6 @@
     "coverage": "codecov",
     "lint": "eslint ./src/ ./test/  --fix",
     "semantic-release": "semantic-release",
-    "pretest": "cd test/example && npm ci",
     "test": "nyc --extension .ts --reporter=html mocha --forbid-only \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "version": "oclif readme && git add README.md"
@@ -85,11 +84,11 @@
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.1.0",
     "@oclif/plugin-version": "^1.1.1",
-    "archiver": "^5.3.1",
     "plist": "^3.0.5",
     "rimraf": "^3.0.2",
     "semver": "^7.3.7",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "yazl": "^2.5.1"
   },
   "devDependencies": {
     "@oclif/test": "^2",
@@ -104,6 +103,7 @@
     "@types/plist": "^3.0.2",
     "@types/rimraf": "^3.0.2",
     "@types/unzipper": "^0.10.5",
+    "@types/yazl": "^2.4.2",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
     "c8": "^7.12.0",

@@ -484,7 +484,7 @@ Pack files and node dependencies to zip file.
 USAGE
   $ node-modules-packer run [DIR] [--json] [-i <value>] [-e <value>] [--disable-default-ignore-file-ext]
     [--include-node-path <value>] [--ignore-node-path <value>] [--prod] [--peer] [--dev] [--optional] [--output-path
-    <value>] [--output-file <value>]
+    <value>] [--output-file <value>] [-q]
 
 ARGUMENTS
   DIR  [default: ./] Project root directory
@@ -492,6 +492,7 @@ ARGUMENTS
 FLAGS
   -e, --ignore-file-ext=<value>...        Force ignore specific file extension.
   -i, --include=package.json...           Include more files during packing (eg: -i dist).
+  -q, --quiet                             Run without logging.
   --[no-]dev                              Include development dependencies when pack node dependencies.
   --[no-]disable-default-ignore-file-ext  Disable including default ignored extensions that we consider as useless.
   --ignore-node-path=typeorm/browser...   Force exclude folders starting with specified path (eg: -n "typeorm/browser"

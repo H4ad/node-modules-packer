@@ -1,13 +1,15 @@
 //#region Imports
 
+import * as fs from 'fs';
 import {
+  createReadStream,
   createWriteStream,
   existsSync,
   mkdirSync,
   readFileSync,
   statSync,
 } from 'fs';
-import { join, resolve } from 'path';
+import { join, relative, resolve } from 'path';
 import {
   DependencyInfo,
   DependencyType,
@@ -16,8 +18,8 @@ import {
 } from '@h4ad/dependency-extractor';
 import { Flags } from '@oclif/core';
 import { LoadOptions } from '@oclif/core/lib/interfaces';
-import archiver from 'archiver';
 import rimraf from 'rimraf';
+import { ZipFile } from 'yazl';
 import CustomCommand from '../../common/custom-command';
 import CustomError from '../../common/custom-error';
 import { defaultIgnoredFileExtensions } from '../../common/extensions';
@@ -203,6 +205,7 @@ export default class Run extends CustomCommand {
     const selectedDependencies = this.getSelectedDependencies(flags, dir);
 
     const shouldIgnoreNodeFile = this.getShouldIgnoreNodeFileCallback(
+      dir,
       ignoredFileExtensions,
       ignoredNodePaths,
       includedNodePaths,
@@ -217,7 +220,7 @@ export default class Run extends CustomCommand {
 
     const outputFilePath = resolve(dir, outputPath, outputFile);
 
-    await this.zipDirectory(flags, zipArtifacts, outputFilePath);
+    await this.zipDirectory(flags, dir, zipArtifacts, outputFilePath);
 
     const size = statSync(outputFilePath).size;
 
@@ -413,6 +416,7 @@ export default class Run extends CustomCommand {
   }
 
   protected getShouldIgnoreNodeFileCallback(
+    dir: string,
     ignoredFileExtensions: string[],
     ignoredNodePaths: string[],
     includedNodePaths: string[],
@@ -422,13 +426,16 @@ export default class Run extends CustomCommand {
       if (ignoredFileExtensions.some(ext => filename.endsWith(ext)))
         return true;
 
-      if (includedNodePaths.some(path => filename.startsWith(path)))
+      const filenameNodePath = relative(resolve(dir, 'node_modules'), filename);
+
+      if (includedNodePaths.some(path => filenameNodePath.startsWith(path)))
         return false;
 
-      if (ignoredNodePaths.some(path => filename.startsWith(path))) return true;
+      if (ignoredNodePaths.some(path => filenameNodePath.startsWith(path)))
+        return true;
 
       const isSelectedDependency = selectedDependencies.some(dependency =>
-        filename.startsWith(dependency.name),
+        filenameNodePath.startsWith(dependency.name),
       );
 
       return !isSelectedDependency;
@@ -477,46 +484,97 @@ export default class Run extends CustomCommand {
 
   protected async zipDirectory(
     flags: typeof Run.flags,
+    dir: string,
     sources: ZipArtifact[],
     outputPath: string,
   ): Promise<void> {
     this.logMessage(flags, 'log', 'Creating the output file');
 
-    let format: 'tar' | 'zip' | null = null;
-
-    if (outputPath.endsWith('.zip')) format = 'zip';
-    else if (outputPath.endsWith('.tar.gz')) format = 'tar';
-    else {
+    if (!outputPath.endsWith('.zip')) {
       throw new CustomError('Invalid output file extension.', {
         code: 'ERR_OUTPUT_FILE',
         suggestions: [
-          'You should specific an --output-file with .zip or .tar.gz extension.',
+          'You should specific an --output-file with .zip extension.',
         ],
       });
     }
 
-    const archive = archiver(format, { zlib: { level: 9 } });
+    const rootPath = resolve(process.cwd(), dir);
+
+    const zipfile = new ZipFile();
     const stream = createWriteStream(outputPath);
 
-    await new Promise<void>((resolve, reject) => {
-      for (const source of sources) {
-        if (source.type === 'file')
-          archive.file(source.path, { name: source.name });
+    zipfile.outputStream.pipe(stream);
 
-        if (source.type === 'directory') {
-          archive.directory(source.path, source.name, data => {
-            if (source.shouldIgnore && source.shouldIgnore(data.name))
-              return false;
+    function readdirAndAddToZip(
+      source: ZipArtifact,
+      path: string,
+      callback: (err: Error | null) => void,
+    ) {
+      fs.readdir(path, (err, files) => {
+        if (err) return callback(err);
 
-            return data;
+        let pending = files.length;
+
+        if (!pending) return callback(null);
+
+        files.forEach(file => {
+          const filePath = join(path, file);
+
+          fs.stat(filePath, (_err, stats) => {
+            if (_err) return callback(_err);
+
+            if (stats.isDirectory()) {
+              readdirAndAddToZip(source, filePath, __err => {
+                if (__err) return callback(__err);
+
+                pending -= 1;
+
+                if (!pending) return callback(null);
+              });
+            } else {
+              if (
+                !source.shouldIgnore ||
+                (source.shouldIgnore && !source.shouldIgnore(filePath))
+              ) {
+                const metadataPath = relative(rootPath, filePath);
+                const readStream = createReadStream(filePath);
+
+                zipfile.addReadStream(readStream, metadataPath);
+              }
+
+              pending -= 1;
+
+              if (!pending) return callback(null);
+            }
           });
+        });
+      });
+    }
+
+    for (const source of sources) {
+      await new Promise<void>((resolve, reject) => {
+        if (source.type === 'directory') {
+          readdirAndAddToZip(source, source.path, err => {
+            if (err) reject(err);
+            else resolve();
+          });
+        } else {
+          const metadataPath = relative(rootPath, source.path);
+          const readStream = createReadStream(source.path);
+
+          zipfile.addReadStream(readStream, metadataPath);
+          resolve();
         }
-      }
+      });
+    }
 
-      archive.on('error', err => reject(err)).pipe(stream);
+    zipfile.end();
 
-      stream.on('error', err => reject(err)).on('close', () => resolve());
-      archive.finalize();
+    await new Promise<void>((resolve, reject) => {
+      zipfile.outputStream.once('error', err => reject(err));
+
+      stream.once('error', err => reject(err)).once('close', () => resolve());
     });
 
     this.logMessage(flags, 'log', 'Creating the output file... created');
