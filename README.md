@@ -517,7 +517,7 @@ EXAMPLES
   $ node-modules-packer run /project/path -i dist
 ```
 
-_See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-packer/blob/v1.0.0/src/commands/run/index.ts)_
+_See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-packer/blob/v1.0.1/src/commands/run/index.ts)_
 
 ## `node-modules-packer version`
 
