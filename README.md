@@ -560,7 +560,7 @@ _See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-pack
 
 [issues-url]:https://github.com/H4ad/node-modules-packer/issues
 
-[codecov-img]:https://codecov.io/gh/H4ad/node-modules-packer/branch/main/graph/badge.svg
+[codecov-img]:https://codecov.io/gh/H4ad/node-modules-packer/branch/master/graph/badge.svg
 
 [codecov-url]:https://codecov.io/gh/H4ad/node-modules-packer
 
