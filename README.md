@@ -548,7 +548,7 @@ _See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-pack
 
 [build-url]:https://github.com/H4ad/node-modules-packer/actions/workflows/release.yml
 
-[downloads-img]:https://img.shields.io/npm/dt/pack
+[downloads-img]:https://img.shields.io/npm/dt/@h4ad/node-modules-packer
 
 [downloads-url]:https://www.npmtrends.com/@h4ad/node-modules-packer
 
