@@ -1,52 +1,17 @@
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { join } from 'path';
-import { Command } from '@oclif/core';
-import test, { expect } from '@oclif/test';
+import { expect } from '@oclif/test';
 import Run from '../../../src/commands/run';
 import MockFsFactory from '../../mockfs/mockfs.factory';
+import { fsTest } from '../../mockfs/test';
 import { getUnzipedFilesInMap } from '../../mockfs/unzip';
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const oldRun = Command.prototype._run;
-
 describe('when pack is called', () => {
-  beforeEach(() => {
-    // @ts-ignore
-    Command.prototype._run = function (args) {
-      MockFsFactory.createMockFs();
-
-      writeFileSync(join(MockFsFactory.DIR_PROJECT, 'deploy.zip'), 'test');
-
-      return (
-        oldRun
-          // @ts-ignore
-          .bind(this)(...args)
-          .then(result => {
-            // MockFsFactory.resetMockFs();
-
-            return result;
-          })
-          // @ts-ignore
-          .catch(err => {
-            // MockFsFactory.resetMockFs();
-
-            throw err;
-          })
-      );
-    };
-  });
-
-  afterEach(() => {
-    Command.prototype._run = oldRun;
-
-    MockFsFactory.resetMockFs();
-  });
-
   describe('with only project folder', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
       .it(
         'should generate deploy.zip with only production dependencies',
         async ctx => {
@@ -71,10 +36,10 @@ describe('when pack is called', () => {
         },
       );
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--dev', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', '--dev', MockFsFactory.DIR_PROJECT])
       .it('should generate deploy.zip with dev dependencies', async ctx => {
         expect(ctx.stderr).to.be.empty;
 
@@ -95,10 +60,10 @@ describe('when pack is called', () => {
         ).to.be.true;
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--peer', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', '--peer', MockFsFactory.DIR_PROJECT])
       .it('should generate deploy.zip with peer dependencies', async ctx => {
         expect(ctx.stderr).to.be.empty;
 
@@ -117,10 +82,10 @@ describe('when pack is called', () => {
         ).to.be.true;
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--optional', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', '--optional', MockFsFactory.DIR_PROJECT])
       .it(
         'should generate deploy.zip with optional dependencies',
         async ctx => {
@@ -146,10 +111,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --json flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--json', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', '--json', MockFsFactory.DIR_PROJECT])
       .it('should output success in json', ctx => {
         expect(ctx.stdout).to.contain('"status": "success"');
         expect(ctx.stdout).to.contain('"size":');
@@ -163,10 +128,10 @@ describe('when pack is called', () => {
         expect(createdTheDeployZip).to.be.eq(true);
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--json', MockFsFactory.DIR_NO_NODE_MODULES])
+      .fsmockCommand(['run', '--json', MockFsFactory.DIR_NO_NODE_MODULES])
       .it('should output error in json', ctx => {
         expect(ctx.stdout).to.contain('"status": "error"');
         expect(ctx.stdout).to.contain('"message": "');
@@ -176,10 +141,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --include flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command([
+      .fsmockCommand([
         'run',
         MockFsFactory.DIR_PROJECT,
         '-i',
@@ -201,10 +166,15 @@ describe('when pack is called', () => {
         expect(mapFiles.has('.gitignore')).to.be.true;
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT, '-i', 'dont-exist.test'])
+      .fsmockCommand([
+        'run',
+        MockFsFactory.DIR_PROJECT,
+        '-i',
+        'dont-exist.test',
+      ])
       .catch(err => {
         expect(err.message).to.contain('ENOENT: no such file');
       })
@@ -212,10 +182,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --ignore-file-ext flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
       .it('should have json files inside node_modules', async ctx => {
         expect(ctx.stderr).to.be.empty;
 
@@ -226,10 +196,10 @@ describe('when pack is called', () => {
           .true;
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT, '-e', '.json'])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '-e', '.json'])
       .it(
         'should generate deploy.zip without excluded extension files',
         async ctx => {
@@ -245,10 +215,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --disable-default-ignore-file-ext flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
       .it(
         'should generate zip excluding default extensions files',
         async ctx => {
@@ -262,10 +232,10 @@ describe('when pack is called', () => {
         },
       );
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command([
+      .fsmockCommand([
         'run',
         MockFsFactory.DIR_PROJECT,
         '--disable-default-ignore-file-ext',
@@ -285,10 +255,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --include-node-path flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
       .it('should generate zip including without kind-of', async ctx => {
         expect(ctx.stderr).to.be.empty;
 
@@ -303,10 +273,10 @@ describe('when pack is called', () => {
         ).to.be.true;
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command([
+      .fsmockCommand([
         'run',
         MockFsFactory.DIR_PROJECT,
         '--include-node-path',
@@ -331,10 +301,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --ignore-node-path flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
       .it('should generate zip including has-symbols', async ctx => {
         expect(ctx.stderr).to.be.empty;
 
@@ -349,10 +319,10 @@ describe('when pack is called', () => {
         ).to.be.true;
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command([
+      .fsmockCommand([
         'run',
         MockFsFactory.DIR_PROJECT,
         '--ignore-node-path',
@@ -377,10 +347,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --output-file flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command([
+      .fsmockCommand([
         'run',
         '--output-file',
         'result.zip',
@@ -396,10 +366,15 @@ describe('when pack is called', () => {
         expect(createdTheDeployZip).to.be.eq(true);
       });
 
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--output-file', 'result.ts', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand([
+        'run',
+        '--output-file',
+        'result.ts',
+        MockFsFactory.DIR_PROJECT,
+      ])
       .catch(err => {
         expect(err.message).to.contain('Invalid output file extension');
       })
@@ -407,10 +382,15 @@ describe('when pack is called', () => {
   });
 
   describe('with --output-path flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', '--output-path', './result', MockFsFactory.DIR_PROJECT])
+      .fsmockCommand([
+        'run',
+        '--output-path',
+        './result',
+        MockFsFactory.DIR_PROJECT,
+      ])
       .it('should generate deploy.zip inside result folder', ctx => {
         expect(ctx.stderr).to.be.empty;
 
@@ -423,10 +403,10 @@ describe('when pack is called', () => {
   });
 
   describe('with --quiet flag', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_PROJECT, '-q'])
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '-q'])
       .it('should log nothing', ctx => {
         expect(ctx.stdout).to.be.empty;
         expect(ctx.stderr).to.be.empty;
@@ -439,10 +419,10 @@ describe('when pack is called', () => {
   });
 
   describe('with invalid lock file', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_NO_PACKAGE_LOCK_FILE])
+      .fsmockCommand(['run', MockFsFactory.DIR_NO_PACKAGE_LOCK_FILE])
       .catch(err => {
         expect(err.message).to.contain('Invalid package-lock.json');
       })
@@ -450,10 +430,10 @@ describe('when pack is called', () => {
   });
 
   describe('with invalid node modules', () => {
-    test
+    fsTest
       .stdout()
       .stderr()
-      .command(['run', MockFsFactory.DIR_NO_NODE_MODULES])
+      .fsmockCommand(['run', MockFsFactory.DIR_NO_NODE_MODULES])
       .catch(err => {
         expect(err.message).to.contain('Invalid Node Modules');
       })
@@ -461,7 +441,7 @@ describe('when pack is called', () => {
   });
 
   describe('with headless', () => {
-    test
+    fsTest
       // @ts-ignore
       .stub(Run, 'run', (args: any) => args)
       .it('should generate correctly the default', async () => {
@@ -472,7 +452,7 @@ describe('when pack is called', () => {
         expect(result).to.be.eql(['./']);
       });
 
-    test
+    fsTest
       // @ts-ignore
       .stub(Run, 'run', (args: any) => args)
       .it('should generate correctly all flags', async () => {
