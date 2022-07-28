@@ -3,6 +3,8 @@ export const defaultIgnoredFileExtensions = [
   '.ts',
   '.d.ts',
   '.js.map',
+  '.cjs.map',
+  '.mjs.map',
   '.d.ts.map',
   '.css.map',
   '.md',
