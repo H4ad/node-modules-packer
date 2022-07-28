@@ -550,11 +550,11 @@ _See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-pack
 
 [downloads-img]:https://img.shields.io/npm/dt/pack
 
-[downloads-url]:https://www.npmtrends.com/@H4ad/node-modules-packer
+[downloads-url]:https://www.npmtrends.com/@h4ad/node-modules-packer
 
-[npm-img]:https://img.shields.io/npm/v/@H4ad/node-modules-packer
+[npm-img]:https://img.shields.io/npm/v/@h4ad/node-modules-packer
 
-[npm-url]:https://www.npmjs.com/package/@H4ad/node-modules-packer
+[npm-url]:https://www.npmjs.com/package/@h4ad/node-modules-packer
 
 [issues-img]:https://img.shields.io/github/issues/H4ad/node-modules-packer
 
