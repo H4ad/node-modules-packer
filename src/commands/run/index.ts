@@ -1,14 +1,6 @@
 //#region Imports
 
-import * as fs from 'fs';
-import {
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  statSync,
-} from 'fs';
+import { existsSync, mkdirSync, readFileSync, statSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import {
   DependencyInfo,
@@ -19,13 +11,12 @@ import {
 import { Flags } from '@oclif/core';
 import { LoadOptions } from '@oclif/core/lib/interfaces';
 import rimraf from 'rimraf';
-import { ZipFile } from 'yazl';
 import CustomCommand from '../../common/custom-command';
 import CustomError from '../../common/custom-error';
 import { defaultIgnoredFileExtensions } from '../../common/extensions';
 import { HeadlessOptions } from '../../common/headless';
 import { OutputInfo } from '../../common/output-info';
-import { ZipArtifact } from '../../common/zip';
+import { FasterZip, ZipArtifact } from '../../common/zip';
 
 //#endregion
 
@@ -485,7 +476,7 @@ export default class Run extends CustomCommand {
   protected async zipDirectory(
     flags: typeof Run.flags,
     dir: string,
-    sources: ZipArtifact[],
+    zipArtifacts: ZipArtifact[],
     outputPath: string,
   ): Promise<void> {
     this.logMessage(flags, 'log', 'Creating the output file');
@@ -500,82 +491,9 @@ export default class Run extends CustomCommand {
     }
 
     const rootPath = resolve(process.cwd(), dir);
+    const fasterZip = new FasterZip();
 
-    const zipfile = new ZipFile();
-    const stream = createWriteStream(outputPath);
-
-    zipfile.outputStream.pipe(stream);
-
-    function readdirAndAddToZip(
-      source: ZipArtifact,
-      path: string,
-      callback: (err: Error | null) => void,
-    ) {
-      fs.readdir(path, (err, files) => {
-        if (err) return callback(err);
-
-        let pending = files.length;
-
-        if (!pending) return callback(null);
-
-        files.forEach(file => {
-          const filePath = join(path, file);
-
-          fs.stat(filePath, (_err, stats) => {
-            if (_err) return callback(_err);
-
-            if (stats.isDirectory()) {
-              readdirAndAddToZip(source, filePath, __err => {
-                if (__err) return callback(__err);
-
-                pending -= 1;
-
-                if (!pending) return callback(null);
-              });
-            } else {
-              if (
-                !source.shouldIgnore ||
-                (source.shouldIgnore && !source.shouldIgnore(filePath))
-              ) {
-                const metadataPath = relative(rootPath, filePath);
-                const readStream = createReadStream(filePath);
-
-                zipfile.addReadStream(readStream, metadataPath);
-              }
-
-              pending -= 1;
-
-              if (!pending) return callback(null);
-            }
-          });
-        });
-      });
-    }
-
-    for (const source of sources) {
-      await new Promise<void>((resolve, reject) => {
-        if (source.type === 'directory') {
-          readdirAndAddToZip(source, source.path, err => {
-            if (err) reject(err);
-            else resolve();
-          });
-        } else {
-          const metadataPath = relative(rootPath, source.path);
-          const readStream = createReadStream(source.path);
-
-          zipfile.addReadStream(readStream, metadataPath);
-          resolve();
-        }
-      });
-    }
-
-    zipfile.end();
-
-    await new Promise<void>((resolve, reject) => {
-      zipfile.outputStream.once('error', err => reject(err));
-
-      stream.once('error', err => reject(err)).once('close', () => resolve());
-    });
+    await fasterZip.run(rootPath, outputPath, zipArtifacts);
 
     this.logMessage(flags, 'log', 'Creating the output file... created');
   }
