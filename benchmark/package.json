@@ -1,0 +1,14 @@
+{
+  "name": "benchmark",
+  "version": "1.0.0",
+  "description": "Test performance of the library.",
+  "scripts": {
+    "benchmark": "node suites.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@h4ad/node-modules-packer": "^1.0.2",
+    "archiver": "^5.3.1"
+  }
+}

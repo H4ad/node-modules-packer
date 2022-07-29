@@ -3,6 +3,7 @@
 </h1>
 
 <p align="center">
+  <a href="#use-cases">Use Cases</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#usage">Usage</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#examples">Examples</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#headless">Headless</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
@@ -23,13 +24,32 @@ This is a library to package all your node_modules and other files you want insi
 You can use this library to deploy applications in serverless environments, for example, without having to do
 lots of crazy configurations with webpack.
 
-I personally created this library inspired by one internal library I created for my company to deploy our NestJS apps
-for AWS Lambda, with this guy I lowered the deployment time to 50s (M2 SSD) with the benefit that my Webstorm doesn't go crazy
-with dependency indexing every time I deploy because I no longer need to run `npm prune --production` just to get a descent build size.
+I personally created this library inspired by an internal library I created for my company to deploy our NestJS apps
+for AWS Lambda, with this guy I improve deployment time [by up to 432%](./benchmark#results) (M2 SSD) with the benefit that my Webstorm doesn't go crazy
+with dependency indexing every time I implement because I no longer need to run `npm prune --production` just to get a descending build size.
 
 > Wait, you're asking me why I build and deploy the APIs on my computer instead of using CI/CD?
 >
 > Well the answer is pretty simple, I want to be in control of these things ~~and we didn't have a CI/CD until a few months ago.~~
+
+# Use cases
+
+In which cases this library might suit you:
+
+- If you deploy your nodejs apps in zip file with node_modules.
+- If you want to keep the directory structure (eg typeorm).
+- If you don't like dealing with webpack and just want to get things done.
+- If you use terraform to deploy in serverless environments, just point the output file to terraform and that's it.
+- If you like to deploy your app manually.
+  - This library can give you more control over how you compress your files without having to write a lot of code to do so.
+
+In which cases this library might not fit you:
+
+- If you already have some webpack configuration to package your app.
+- If you don't need to maintain the directory structure.
+- If your nodejs app is very simple (see [serverless-bundle](https://github.com/AnomalyInnovations/serverless-bundle)).
+- If you use [serverless.com](https://www.serverless.com/).
+  - I've personally never used it, but it looks pretty good to use, see their [packaging docs.](https://www.serverless.com/framework/docs/providers/aws/guide/packaging)
 
 # Usage
 
@@ -50,7 +70,7 @@ By default, this command will:
 - Find all production dependencies and will package them all.
 - Ignore all development/peer/optional dependencies
 - Ignore many common unused file extensions (eg: .md, .d.ts, .js.map, ..etc)
-  - See the full list [here.](https://github.com/H4ad/node-modules-packer/blob/v1.0.0/src/common/extensions.ts)
+  - See the full list [here.](https://github.com/H4ad/node-modules-packer/blob/master/src/common/extensions.ts)
 - Output the final zip with the name `deploy.zip`.
 
 # Examples
@@ -133,6 +153,10 @@ console.log(result.file);
 console.log(result.path);
 ```
 
+# Benchmarks
+
+[See here](./benchmark) more about.
+
 # Reference
 
 <details open>
@@ -140,6 +164,7 @@ console.log(result.path);
 <br>
 
 <!-- commands -->
+
 * [`node-modules-packer autocomplete [SHELL]`](#node-modules-packer-autocomplete-shell)
 * [`node-modules-packer commands`](#node-modules-packer-commands)
 * [`node-modules-packer help [COMMAND]`](#node-modules-packer-help-command)
