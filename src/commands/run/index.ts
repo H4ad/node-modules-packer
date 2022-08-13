@@ -452,14 +452,20 @@ export default class Run extends CustomCommand {
     const includeFiles = Array.isArray(flags.include) ? flags.include : [];
 
     for (const includeFile of includeFiles) {
-      const includeFilePath = join(dir, includeFile);
+      const [relativePath, pathMappedTo] = includeFile.split(':');
+
+      const includeFilePath = join(dir, relativePath);
       const stats = statSync(includeFilePath);
+      const metadataPath = pathMappedTo
+        ? resolve('/', pathMappedTo).slice(1)
+        : undefined;
 
       const type = stats.isDirectory() ? 'directory' : 'file';
 
       artifacts.push({
         path: includeFilePath,
         name: includeFile,
+        metadataPath,
         type,
       });
     }
@@ -493,7 +499,17 @@ export default class Run extends CustomCommand {
     const rootPath = resolve(process.cwd(), dir);
     const fasterZip = new FasterZip();
 
-    await fasterZip.run(rootPath, outputPath, zipArtifacts);
+    await fasterZip.run(rootPath, outputPath, zipArtifacts).catch(error => {
+      throw new CustomError(
+        `An error occurred while creating the zip: ${error.message}`,
+        {
+          code: 'ERR_FASTER_ZIP',
+          suggestions: [
+            "Make sure you didn't pass invalid path to files or remapping.",
+          ],
+        },
+      );
+    });
 
     this.logMessage(flags, 'log', 'Creating the output file... created');
   }

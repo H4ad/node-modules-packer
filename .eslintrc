@@ -6,7 +6,7 @@
   ],
   "parserOptions": {
     "project": [
-      "./tsconfig.eslint.json"
+      "./tsconfig.json"
     ]
   },
   "extends": [

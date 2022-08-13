@@ -173,6 +173,59 @@ describe('when pack is called', () => {
         'run',
         MockFsFactory.DIR_PROJECT,
         '-i',
+        './src:dist/src',
+        '-i',
+        '.gitignore:dist/.gitignore',
+      ])
+      .it('should generate deploy.zip with included files', async ctx => {
+        expect(ctx.stderr).to.be.empty;
+
+        const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+        const createdTheDeployZip = existsSync(outputFilePath);
+
+        expect(createdTheDeployZip).to.be.eq(true);
+
+        const mapFiles = await getUnzipedFilesInMap(outputFilePath);
+
+        expect(mapFiles.has('dist/src/index.js')).to.be.true;
+        expect(mapFiles.has('dist/.gitignore')).to.be.true;
+      });
+
+    fsTest
+      .stdout()
+      .stderr()
+      .fsmockCommand([
+        'run',
+        MockFsFactory.DIR_PROJECT,
+        '-i',
+        './src:../../dist/src',
+        '-i',
+        '.gitignore:../dist/.gitignore',
+      ])
+      .it(
+        'should ignore when relative is pointing out of zip base path',
+        async ctx => {
+          expect(ctx.stderr).to.be.empty;
+
+          const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+          const createdTheDeployZip = existsSync(outputFilePath);
+
+          expect(createdTheDeployZip).to.be.eq(true);
+
+          const mapFiles = await getUnzipedFilesInMap(outputFilePath);
+
+          expect(mapFiles.has('dist/src/index.js')).to.be.true;
+          expect(mapFiles.has('dist/.gitignore')).to.be.true;
+        },
+      );
+
+    fsTest
+      .stdout()
+      .stderr()
+      .fsmockCommand([
+        'run',
+        MockFsFactory.DIR_PROJECT,
+        '-i',
         'dont-exist.test',
       ])
       .catch(err => {

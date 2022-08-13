@@ -1,10 +1,14 @@
 import fs, { createReadStream, createWriteStream } from 'fs';
-import { join, relative } from 'path';
+import { join, normalize, relative } from 'path';
 import { ZipFile } from 'yazl';
 
 export interface ZipArtifact {
   path: string;
+  /**
+   * @deprecated It will be removed in the next versions because it is not used
+   */
   name: string;
+  metadataPath?: string;
   type: 'file' | 'directory';
   shouldIgnore?: (fileName: string) => boolean;
 }
@@ -21,26 +25,38 @@ export class FasterZip {
     zipfile.outputStream.pipe(stream);
 
     for (const artifact of zipArtifacts) {
-      await new Promise<void>((resolve, reject) => {
-        if (artifact.type === 'directory') {
-          this.readdirAndAddToZip(
-            zipfile,
-            rootPath,
-            artifact,
-            artifact.path,
-            err => {
-              if (err) reject(err);
-              else resolve();
-            },
-          );
-        } else {
-          const metadataPath = relative(rootPath, artifact.path);
-          const readStream = createReadStream(artifact.path);
+      try {
+        await new Promise<void>((resolve, reject) => {
+          try {
+            if (artifact.type === 'directory') {
+              this.readdirAndAddToZip(
+                zipfile,
+                rootPath,
+                artifact,
+                artifact.path,
+                err => {
+                  if (err) reject(err);
+                  else resolve();
+                },
+              );
+            } else {
+              const metadataPath = artifact.metadataPath
+                ? artifact.path.replace(artifact.path, artifact.metadataPath)
+                : relative(rootPath, artifact.path);
+              const readStream = createReadStream(artifact.path);
 
-          zipfile.addReadStream(readStream, metadataPath);
-          resolve();
-        }
-      });
+              zipfile.addReadStream(readStream, normalize(metadataPath));
+              resolve();
+            }
+          } catch (e) {
+            reject(e);
+          }
+        });
+      } catch (e) {
+        stream.destroy();
+
+        throw new Error(e.message);
+      }
     }
 
     zipfile.end();
@@ -72,34 +88,40 @@ export class FasterZip {
         fs.stat(filePath, (_err, stats) => {
           if (_err) return callback(_err);
 
-          if (stats.isDirectory()) {
-            this.readdirAndAddToZip(
-              zipFile,
-              rootPath,
-              source,
-              filePath,
-              __err => {
-                if (__err) return callback(__err);
+          try {
+            if (stats.isDirectory()) {
+              this.readdirAndAddToZip(
+                zipFile,
+                rootPath,
+                source,
+                filePath,
+                __err => {
+                  if (__err) return callback(__err);
 
-                pending -= 1;
+                  pending -= 1;
 
-                if (!pending) return callback(null);
-              },
-            );
-          } else {
-            if (
-              !source.shouldIgnore ||
-              (source.shouldIgnore && !source.shouldIgnore(filePath))
-            ) {
-              const metadataPath = relative(rootPath, filePath);
-              const readStream = createReadStream(filePath);
+                  if (!pending) return callback(null);
+                },
+              );
+            } else {
+              if (
+                !source.shouldIgnore ||
+                (source.shouldIgnore && !source.shouldIgnore(filePath))
+              ) {
+                const metadataPath = source.metadataPath
+                  ? filePath.replace(source.path, source.metadataPath)
+                  : relative(rootPath, filePath);
+                const readStream = createReadStream(filePath);
 
-              zipFile.addReadStream(readStream, metadataPath);
+                zipFile.addReadStream(readStream, normalize(metadataPath));
+              }
+
+              pending -= 1;
+
+              if (!pending) return callback(null);
             }
-
-            pending -= 1;
-
-            if (!pending) return callback(null);
+          } catch (e) {
+            callback(e);
           }
         });
       });
