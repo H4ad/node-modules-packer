@@ -103,4 +103,19 @@ export interface HeadlessOptions {
    * @default deploy.zip
    */
   outputFile?: string;
+
+  /**
+   * Pass all .js files to esbuild transform to reduce the file size.
+   *
+   * @default false
+   */
+  minify?: boolean;
+
+  /**
+   * Keep the names of all properties and class names during minification.
+   *
+   * @reference {@link https://esbuild.github.io/api/#keep-names}
+   * @default false
+   */
+  minifyKeepNames?: boolean;
 }

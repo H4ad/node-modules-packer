@@ -20,14 +20,17 @@
 [![Commitizen Friendly][commitizen-img]][commitizen-url]
 [![Semantic Release][semantic-release-img]][semantic-release-url]
 
-This is a library to package all your node_modules and other files you want inside your project to a zip file. It's like using `npm prune --production` but without all the heavy I/O operations.
+This is a library to package all your node_modules and other files you want inside your project to a zip file. 
+It's like using `npm prune --production` but without all the heavy I/O operations.
 
 You can use this library to deploy applications in serverless environments, for example, without having to do
-lots of crazy configurations with webpack.
+lots of crazy configurations with webpack, also this library allows you to minify all `.js` files using `esbuild`.
 
 I personally created this library inspired by an internal library I created for my company to deploy our NestJS apps
-for AWS Lambda, with this guy I improve deployment time [by up to 432%](./benchmark#results) (M2 SSD) with the benefit that my Webstorm doesn't go crazy
-with dependency indexing every time I implement because I no longer need to run `npm prune --production` just to get a descending build size.
+for AWS Lambda.
+With this guy I improve deployment time by up to [441% (284% minified)](./benchmark#results) and reduce the bundle
+size by up to [68% (122% minified)](./benchmark#results) with the benefit that my Webstorm doesn't go crazy with dependency indexing 
+every time I deploy because I no longer need to run `npm prune --production` just to get a descending build size.
 
 > Wait, you're asking me why I build and deploy the APIs on my computer instead of using CI/CD?
 >
@@ -41,6 +44,8 @@ In which cases this library might suit you:
 - If you want to keep the directory structure (eg typeorm).
 - If you don't like dealing with webpack and just want to get things done.
 - If you use terraform to deploy in serverless environments, just point the output file to terraform and that's it.
+- If you want to minify all `.js` files, see `--minify` flag.
+- If you want to remap the files, like renaming `dist` to `build`.
 - If you like to deploy your app manually.
   - This library can give you more control over how you compress your files without having to write a lot of code to do so.
 
@@ -86,6 +91,20 @@ During including, if you need to remap, you can use `:` between the paths:
 
 ```bash
 node-modules-packer run ./ -i dist:build -i package.json:dist/package.json
+```
+
+Minify all `.js` files to reduce the bundle size:
+
+```bash
+node-modules-packer run ./ -i dist --minify
+```
+
+> All `.js` files are minified, including files and folders that you include with `-i` flag.
+
+If you want to preserve the class names, properties and other symbols, you can run with `--minify-keep-names`:
+
+```bash
+node-modules-packer run ./ -i dist --minify --minify-keep-names
 ```
 
 Exclude unwanted file extensions from node_modules:
@@ -153,6 +172,8 @@ const result = await Run.headless({
   include: ['dist', 'ormconfig.js'],
   outputPath: './deploy',
   outputFile: 'deploy.zip',
+  minify: true,
+  minifyKeepNames: true,
 });
 
 console.log(result.size);
@@ -515,7 +536,7 @@ Pack files and node dependencies to zip file.
 USAGE
   $ node-modules-packer run [DIR] [--json] [-i <value>] [-e <value>] [--disable-default-ignore-file-ext]
     [--include-node-path <value>] [--ignore-node-path <value>] [--prod] [--peer] [--dev] [--optional] [--output-path
-    <value>] [--output-file <value>] [-q]
+    <value>] [--output-file <value>] [--uglify] [-q]
 
 ARGUMENTS
   DIR  [default: ./] Project root directory
@@ -537,6 +558,7 @@ FLAGS
   --output-path=<value>                   [default: ./] Specify output path for the zip file.
   --[no-]peer                             Include peer dependencies when pack node dependencies.
   --[no-]prod                             Include production dependencies when pack node dependencies.
+  --[no-]uglify                           Transform each .js file with uglify
 
 GLOBAL FLAGS
   --json  Format output as json.

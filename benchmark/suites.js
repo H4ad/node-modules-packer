@@ -4,6 +4,7 @@ const lib = require('./node-modules-packer');
 const pruneResults = [];
 const pruneSkipRestoreResults = [];
 const libResults = [];
+const libMinifiedResults = [];
 
 const runs = 5;
 
@@ -26,6 +27,12 @@ async function runSuites() {
     libResults.push(result);
   }
 
+  for (let i = 0; i < runs; i++) {
+    const result = await lib.runSuite(true);
+
+    libMinifiedResults.push(result);
+  }
+
   console.log('Npm Prune Results:');
   console.table(pruneResults);
 
@@ -34,6 +41,9 @@ async function runSuites() {
 
   console.log('Node Modules Packer Results:');
   console.table(libResults);
+
+  console.log('Node Modules Packer Results (minify):');
+  console.table(libMinifiedResults);
 }
 
 runSuites();

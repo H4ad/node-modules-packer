@@ -1,8 +1,12 @@
-import { resolve } from 'path';
+import { readFileSync } from 'fs';
+import { join, resolve } from 'path';
 import mockfs from 'mock-fs';
 
-const node_modules = () =>
-  mockfs.directory({
+const node_modules = () => {
+  const baseNodePath = join(__dirname, '..', 'example', 'node_modules');
+  const readFile = file => readFileSync(join(baseNodePath, file));
+
+  return mockfs.directory({
     items: {
       '.package-lock.json': mockfs.file({
         content: '',
@@ -10,44 +14,44 @@ const node_modules = () =>
       'has-symbols': mockfs.directory({
         items: {
           'CHANGELOG.md': mockfs.file({
-            content: '',
+            content: readFile('has-symbols/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: '',
+            content: readFile('has-symbols/index.js'),
           }),
           LICENSE: mockfs.file({
-            content: '',
+            content: readFile('has-symbols/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: '',
+            content: readFile('has-symbols/package.json'),
           }),
           'README.md': mockfs.file({
-            content: '',
+            content: readFile('has-symbols/README.md'),
           }),
           'shams.js': mockfs.file({
-            content: '',
+            content: readFile('has-symbols/shams.js'),
           }),
         },
       }),
       'has-tostringtag': mockfs.directory({
         items: {
           'CHANGELOG.md': mockfs.file({
-            content: '',
+            content: readFile('has-tostringtag/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: '',
+            content: readFile('has-tostringtag/index.js'),
           }),
           LICENSE: mockfs.file({
-            content: '',
+            content: readFile('has-tostringtag/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: '',
+            content: readFile('has-tostringtag/package.json'),
           }),
           'README.md': mockfs.file({
-            content: '',
+            content: readFile('has-tostringtag/README.md'),
           }),
           'shams.js': mockfs.file({
-            content: '',
+            content: readFile('has-tostringtag/shams.js'),
           }),
         },
       }),
@@ -99,43 +103,44 @@ const node_modules = () =>
       'is-string': mockfs.directory({
         items: {
           'CHANGELOG.md': mockfs.file({
-            content: '',
+            content: readFile('is-string/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: '',
+            content: readFile('is-string/index.js'),
           }),
           LICENSE: mockfs.file({
-            content: '',
+            content: readFile('is-string/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: '',
+            content: readFile('is-string/package.json'),
           }),
           'README.md': mockfs.file({
-            content: '',
+            content: readFile('is-string/README.md'),
           }),
         },
       }),
       'kind-of': mockfs.directory({
         items: {
           'CHANGELOG.md': mockfs.file({
-            content: '',
+            content: readFile('kind-of/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: '',
+            content: 'export batata = 32323; while',
           }),
           LICENSE: mockfs.file({
-            content: '',
+            content: readFile('kind-of/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: '',
+            content: readFile('kind-of/package.json'),
           }),
           'README.md': mockfs.file({
-            content: '',
+            content: readFile('kind-of/README.md'),
           }),
         },
       }),
     },
   });
+};
 
 export default class MockFsFactory {
   static DIR_PROJECT = 'project';
@@ -176,6 +181,13 @@ export default class MockFsFactory {
           ),
           ansicolors: mockfs.load(
             resolve(__dirname, '../../node_modules/ansicolors'),
+          ),
+          esbuild: mockfs.load(
+            resolve(__dirname, '../../node_modules/esbuild'),
+          ),
+          // to make esbuild work
+          'esbuild-linux-64': mockfs.load(
+            resolve(__dirname, '../../node_modules/esbuild-linux-64'),
           ),
         },
       }),

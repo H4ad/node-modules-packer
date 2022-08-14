@@ -10,13 +10,14 @@ import {
 } from '@h4ad/dependency-extractor';
 import { Flags } from '@oclif/core';
 import { LoadOptions } from '@oclif/core/lib/interfaces';
+import esbuild from 'esbuild';
 import rimraf from 'rimraf';
 import CustomCommand from '../../common/custom-command';
 import CustomError from '../../common/custom-error';
 import { defaultIgnoredFileExtensions } from '../../common/extensions';
 import { HeadlessOptions } from '../../common/headless';
 import { OutputInfo } from '../../common/output-info';
-import { FasterZip, ZipArtifact } from '../../common/zip';
+import { FasterZip, TransformAsyncCode, ZipArtifact } from '../../common/zip';
 
 //#endregion
 
@@ -108,6 +109,18 @@ export default class Run extends CustomCommand {
       default: 'deploy.zip',
       required: false,
     }),
+    minify: Flags.boolean({
+      description: 'Minify each .js file with esbuild.',
+      default: false,
+      required: false,
+      allowNo: true,
+    }),
+    'minify-keep-names': Flags.boolean({
+      description: 'Keep the names during minification.',
+      default: false,
+      required: false,
+      allowNo: true,
+    }),
     quiet: Flags.boolean({
       char: 'q',
       description: 'Run without logging.',
@@ -172,6 +185,11 @@ export default class Run extends CustomCommand {
 
     if (options.outputFile !== undefined)
       args.push('--output-file', options.outputFile);
+
+    if (options.minify !== undefined) pushFlagBoolean('minify', options.minify);
+
+    if (options.minifyKeepNames !== undefined)
+      pushFlagBoolean('minify-keep-names', options.minifyKeepNames);
 
     return await this.run(args, loadOptions);
   }
@@ -440,11 +458,35 @@ export default class Run extends CustomCommand {
   ): ZipArtifact[] {
     this.logMessage(flags, 'log', 'Getting artifacts to zip');
 
+    const isJsFileRegex = /(\.js|\.cjs|\.mjs)$/;
+
+    const keepNames = !!flags['minify-keep-names'];
+
+    const transformAsyncCode: TransformAsyncCode = (code: Uint8Array) =>
+      esbuild
+        .transform(code, { minify: true, keepNames })
+        .then(result => result.code);
+
+    const transformerFunction: ZipArtifact['transformer'] = (
+      filePath,
+      metadataPath,
+    ) => {
+      const isJsFile =
+        isJsFileRegex.test(filePath) || isJsFileRegex.test(metadataPath);
+
+      if (!isJsFile) return undefined;
+
+      return transformAsyncCode;
+    };
+
+    const transformer = flags.minify ? transformerFunction : undefined;
+
     const artifacts: ZipArtifact[] = [
       {
         path: join(dir, 'node_modules'),
         name: 'node_modules',
         type: 'directory',
+        transformer,
         shouldIgnore: shouldIgnoreNodeFile,
       },
     ];
@@ -466,6 +508,7 @@ export default class Run extends CustomCommand {
         path: includeFilePath,
         name: includeFile,
         metadataPath,
+        transformer,
         type,
       });
     }

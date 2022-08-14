@@ -1,6 +1,11 @@
-import fs, { createReadStream, createWriteStream } from 'fs';
+import { Stats, createReadStream, createWriteStream } from 'fs';
 import { join, normalize, relative } from 'path';
 import { ZipFile } from 'yazl';
+import { readdirAsync, statAsync } from './fs';
+import { StringStream } from './string-stream';
+import { streamToUInt8Array } from './string-to-uint';
+
+export type TransformAsyncCode = (code: Uint8Array) => Promise<string>;
 
 export interface ZipArtifact {
   path: string;
@@ -11,6 +16,10 @@ export interface ZipArtifact {
   metadataPath?: string;
   type: 'file' | 'directory';
   shouldIgnore?: (fileName: string) => boolean;
+  transformer?: (
+    filePath: string,
+    metadataPath: string,
+  ) => TransformAsyncCode | undefined;
 }
 
 export class FasterZip {
@@ -39,103 +48,102 @@ export class FasterZip {
     });
   }
 
-  readdirAndAddToZip(
+  protected async readdirAndAddToZip(
     zipFile: ZipFile,
     rootPath: string,
     source: ZipArtifact,
     path: string,
     onErrorOnStream: (reason?: any) => void,
-    callback: (err: Error | null) => void,
   ) {
-    fs.readdir(path, (err, files) => {
-      if (err) return callback(err);
+    const filePaths = await readdirAsync(path).then(files =>
+      files.map(file => join(path, file)),
+    );
 
-      let pending = files.length;
+    const filePathsAndStats: [string, Stats][] = await Promise.all(
+      filePaths.map(async filePath => [filePath, await statAsync(filePath)]),
+    );
 
-      if (!pending) return callback(null);
+    await Promise.all(
+      filePathsAndStats.map(async ([filePath, stat]) => {
+        if (stat.isFile()) {
+          if (source.shouldIgnore && source.shouldIgnore(filePath)) return;
 
-      files.forEach(file => {
-        const filePath = join(path, file);
-
-        fs.stat(filePath, (_err, stats) => {
-          if (_err) return callback(_err);
-
-          if (stats.isDirectory()) {
-            this.readdirAndAddToZip(
-              zipFile,
-              rootPath,
-              source,
-              filePath,
-              onErrorOnStream,
-              __err => {
-                if (__err) return callback(__err);
-
-                pending -= 1;
-
-                if (!pending) return callback(null);
-              },
-            );
-          } else {
-            if (
-              !source.shouldIgnore ||
-              (source.shouldIgnore && !source.shouldIgnore(filePath))
-            ) {
-              const metadataPath = source.metadataPath
-                ? filePath.replace(source.path, source.metadataPath)
-                : relative(rootPath, filePath);
-              const readStream = createReadStream(filePath).once('error', err =>
-                onErrorOnStream(err),
-              );
-
-              zipFile.addReadStream(readStream, normalize(metadataPath));
-            }
-
-            pending -= 1;
-
-            if (!pending) return callback(null);
-          }
-        });
-      });
-    });
+          await this.addFileToZip(
+            zipFile,
+            source,
+            rootPath,
+            filePath,
+            onErrorOnStream,
+          );
+        } else {
+          await this.readdirAndAddToZip(
+            zipFile,
+            rootPath,
+            source,
+            filePath,
+            onErrorOnStream,
+          );
+        }
+      }),
+    );
   }
 
-  private async handleArtifact(
+  protected async addFileToZip(
+    zipFile: ZipFile,
+    source: ZipArtifact,
+    rootPath: string,
+    filePath: string,
+    onErrorOnStream: (reason?: any) => void,
+  ): Promise<void> {
+    const metadataPath = normalize(
+      source.metadataPath
+        ? filePath.replace(source.path, source.metadataPath)
+        : relative(rootPath, filePath),
+    );
+
+    const transformer =
+      source.transformer && source.transformer(filePath, metadataPath);
+
+    const readStream = createReadStream(filePath).once('error', err =>
+      onErrorOnStream(err),
+    );
+
+    if (transformer) {
+      try {
+        const code = await streamToUInt8Array(readStream);
+        const finalContent = await transformer(code);
+
+        const fileContentReadable = new StringStream(finalContent);
+
+        zipFile.addReadStream(fileContentReadable, metadataPath);
+      } catch (e) {
+        zipFile.addReadStream(readStream, metadataPath);
+      }
+    } else zipFile.addReadStream(readStream, metadataPath);
+  }
+
+  protected async handleArtifact(
     artifact: ZipArtifact,
     zipfile: ZipFile,
     rootPath: string,
     onErrorOnStream: (reason?: any) => void,
   ): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-      try {
-        if (artifact.type === 'directory') {
-          this.readdirAndAddToZip(
-            zipfile,
-            rootPath,
-            artifact,
-            artifact.path,
-            onErrorOnStream,
-            err => {
-              if (err) reject(err);
-              else resolve();
-            },
-          );
-        } else {
-          const metadataPath = artifact.metadataPath
-            ? artifact.path.replace(artifact.path, artifact.metadataPath)
-            : relative(rootPath, artifact.path);
-          const readStream = createReadStream(artifact.path).once(
-            'error',
-            err => {
-              onErrorOnStream(err);
-            },
-          );
-
-          zipfile.addReadStream(readStream, normalize(metadataPath));
-          resolve();
-        }
-      } catch (e) {
-        reject(e);
-      }
-    });
+    if (artifact.type === 'directory') {
+      await this.readdirAndAddToZip(
+        zipfile,
+        rootPath,
+        artifact,
+        artifact.path,
+        onErrorOnStream,
+      );
+    } else {
+      await this.addFileToZip(
+        zipfile,
+        artifact,
+        rootPath,
+        artifact.path,
+        onErrorOnStream,
+      );
+    }
   }
 }

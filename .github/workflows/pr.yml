@@ -18,15 +18,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
+      - name: Update NPM
+        run: npm i -g npm
 
       - name: Install Lib Dependencies
+        run: npm ci
+
+      - name: Install Testing Lib Dependencies
+        working-directory: test/example
         run: npm ci
 
       - name: Build
