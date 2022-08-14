@@ -536,7 +536,7 @@ Pack files and node dependencies to zip file.
 USAGE
   $ node-modules-packer run [DIR] [--json] [-i <value>] [-e <value>] [--disable-default-ignore-file-ext]
     [--include-node-path <value>] [--ignore-node-path <value>] [--prod] [--peer] [--dev] [--optional] [--output-path
-    <value>] [--output-file <value>] [--uglify] [-q]
+    <value>] [--output-file <value>] [--minify] [--minify-keep-names] [-q]
 
 ARGUMENTS
   DIR  [default: ./] Project root directory
@@ -553,12 +553,13 @@ FLAGS
                                           "dev-dependency" will include node_modules/dev-dependency), but you need to
                                           MANUALLY add your sub-dependencies if dev-dependency has production
                                           dependencies.
+  --[no-]minify                           Minify each .js file with esbuild.
+  --[no-]minify-keep-names                Keep the names during minification.
   --[no-]optional                         Include optional dependencies when pack node dependencies.
   --output-file=<value>                   [default: deploy.zip] Specify output file name for the zip file.
   --output-path=<value>                   [default: ./] Specify output path for the zip file.
   --[no-]peer                             Include peer dependencies when pack node dependencies.
   --[no-]prod                             Include production dependencies when pack node dependencies.
-  --[no-]uglify                           Transform each .js file with uglify
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -570,7 +571,7 @@ EXAMPLES
   $ node-modules-packer run /project/path -i dist
 ```
 
-_See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-packer/blob/v1.1.0/src/commands/run/index.ts)_
+_See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-packer/blob/v1.2.0/src/commands/run/index.ts)_
 
 ## `node-modules-packer version`
 

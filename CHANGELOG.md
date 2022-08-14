@@ -1,5 +1,13 @@
 CHANGES:
 
+# [1.2.0](https://github.com/H4ad/node-modules-packer/compare/v1.1.0...v1.2.0) (2022-08-14)
+
+
+### Features
+
+* **transformer:** added initial draft for transformer uglify ([c505b7e](https://github.com/H4ad/node-modules-packer/commit/c505b7e8aa591cd13d553fddba38d630a7fd7ac0))
+* **zip:** added implementation with promises ([4634c31](https://github.com/H4ad/node-modules-packer/commit/4634c314f8454164dd1dfc0d9cc21a4e192f3178))
+
 # [1.1.0](https://github.com/H4ad/node-modules-packer/compare/v1.0.2...v1.1.0) (2022-08-14)
 
 
