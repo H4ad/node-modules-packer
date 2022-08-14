@@ -16,6 +16,8 @@ import CustomError from '../../common/custom-error';
 import { defaultIgnoredFileExtensions } from '../../common/extensions';
 import { HeadlessOptions } from '../../common/headless';
 import { OutputInfo } from '../../common/output-info';
+import { FileInMemoryTransformer } from '../../common/transformers/file-in-memory.transformer';
+import { UglifyJsTransformer } from '../../common/transformers/uglify-js.transformer';
 import { FasterZip, ZipArtifact } from '../../common/zip';
 
 //#endregion
@@ -108,6 +110,11 @@ export default class Run extends CustomCommand {
       default: 'deploy.zip',
       required: false,
     }),
+    uglify: Flags.boolean({
+      description: 'Transform each .js file with uglify',
+      default: false,
+      required: false,
+    }),
     quiet: Flags.boolean({
       char: 'q',
       description: 'Run without logging.',
@@ -172,6 +179,8 @@ export default class Run extends CustomCommand {
 
     if (options.outputFile !== undefined)
       args.push('--output-file', options.outputFile);
+
+    if (options.uglify !== undefined) pushFlagBoolean('uglify', options.uglify);
 
     return await this.run(args, loadOptions);
   }
@@ -440,11 +449,33 @@ export default class Run extends CustomCommand {
   ): ZipArtifact[] {
     this.logMessage(flags, 'log', 'Getting artifacts to zip');
 
+    const isJsFileRegex = /(\.js|\.cjs|\.mjs)$/;
+
+    const transformers: ZipArtifact['transformers'] = (
+      filePath,
+      metadataPath,
+      stats,
+    ) => {
+      const isJsFile =
+        isJsFileRegex.test(filePath) || isJsFileRegex.test(metadataPath);
+
+      if (!isJsFile || stats.size > 32 * 1024) return [];
+
+      const memory = new FileInMemoryTransformer();
+      const uglifyJs = new UglifyJsTransformer(filePath, {
+        compress: false,
+        mangle: true,
+      });
+
+      return [memory, uglifyJs];
+    };
+
     const artifacts: ZipArtifact[] = [
       {
         path: join(dir, 'node_modules'),
         name: 'node_modules',
         type: 'directory',
+        transformers: flags.uglify ? transformers : undefined,
         shouldIgnore: shouldIgnoreNodeFile,
       },
     ];
@@ -466,6 +497,7 @@ export default class Run extends CustomCommand {
         path: includeFilePath,
         name: includeFile,
         metadataPath,
+        transformers: flags.uglify ? transformers : undefined,
         type,
       });
     }

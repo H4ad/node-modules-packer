@@ -1,4 +1,4 @@
-import { existsSync } from 'fs';
+import { existsSync, statSync } from 'fs';
 import { join } from 'path';
 import { expect } from '@oclif/test';
 import Run from '../../../src/commands/run';
@@ -472,6 +472,34 @@ describe('when pack is called', () => {
         const createdTheDeployZip = existsSync(outputFilePath);
 
         expect(createdTheDeployZip).to.be.eq(true);
+      });
+  });
+
+  describe('with --uglify flag', () => {
+    fsTest
+      .stdout()
+      .stderr()
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
+      .it('should have output file size as 4355 bytes without uglify', ctx => {
+        expect(ctx.stderr).to.be.empty;
+
+        const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+        const stats = statSync(outputFilePath);
+
+        expect(stats.size).to.be.eq(4355);
+      });
+
+    fsTest
+      .stdout()
+      .stderr()
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '--uglify'])
+      .it('should have output file size lower than 4355 with uglify', ctx => {
+        expect(ctx.stderr).to.be.empty;
+
+        const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+        const stats = statSync(outputFilePath);
+
+        expect(stats.size).to.be.below(4355);
       });
   });
 

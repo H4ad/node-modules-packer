@@ -103,4 +103,11 @@ export interface HeadlessOptions {
    * @default deploy.zip
    */
   outputFile?: string;
+
+  /**
+   * Pass all .js files to uglify to reduce the file size.
+   *
+   * @default false
+   */
+  uglify?: boolean;
 }

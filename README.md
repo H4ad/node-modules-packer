@@ -515,7 +515,7 @@ Pack files and node dependencies to zip file.
 USAGE
   $ node-modules-packer run [DIR] [--json] [-i <value>] [-e <value>] [--disable-default-ignore-file-ext]
     [--include-node-path <value>] [--ignore-node-path <value>] [--prod] [--peer] [--dev] [--optional] [--output-path
-    <value>] [--output-file <value>] [-q]
+    <value>] [--output-file <value>] [--uglify] [-q]
 
 ARGUMENTS
   DIR  [default: ./] Project root directory
@@ -537,6 +537,7 @@ FLAGS
   --output-path=<value>                   [default: ./] Specify output path for the zip file.
   --[no-]peer                             Include peer dependencies when pack node dependencies.
   --[no-]prod                             Include production dependencies when pack node dependencies.
+  --uglify                                Transform each .js file with uglify
 
 GLOBAL FLAGS
   --json  Format output as json.

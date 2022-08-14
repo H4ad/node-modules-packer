@@ -1,5 +1,6 @@
-import fs, { createReadStream, createWriteStream } from 'fs';
+import fs, { Stats, createReadStream, createWriteStream } from 'fs';
 import { join, normalize, relative } from 'path';
+import { Transform } from 'stream';
 import { ZipFile } from 'yazl';
 
 export interface ZipArtifact {
@@ -11,7 +12,14 @@ export interface ZipArtifact {
   metadataPath?: string;
   type: 'file' | 'directory';
   shouldIgnore?: (fileName: string) => boolean;
+  transformers?: (
+    filePath: string,
+    metadataPath: string,
+    stats: Stats,
+  ) => Transform[];
 }
+
+const maxHighWatermarkSize = 100 * (1024 * 1024);
 
 export class FasterZip {
   public async run(
@@ -83,9 +91,19 @@ export class FasterZip {
               const metadataPath = source.metadataPath
                 ? filePath.replace(source.path, source.metadataPath)
                 : relative(rootPath, filePath);
-              const readStream = createReadStream(filePath).once('error', err =>
-                onErrorOnStream(err),
-              );
+              const readStream = createReadStream(filePath, {
+                highWaterMark: maxHighWatermarkSize,
+              }).once('error', err => onErrorOnStream(err));
+
+              if (source.transformers) {
+                const transformers = source.transformers(
+                  filePath,
+                  metadataPath,
+                  stats,
+                );
+
+                transformers.forEach(transform => readStream.pipe(transform));
+              }
 
               zipFile.addReadStream(readStream, normalize(metadataPath));
             }
@@ -123,12 +141,23 @@ export class FasterZip {
           const metadataPath = artifact.metadataPath
             ? artifact.path.replace(artifact.path, artifact.metadataPath)
             : relative(rootPath, artifact.path);
-          const readStream = createReadStream(artifact.path).once(
-            'error',
-            err => {
-              onErrorOnStream(err);
-            },
-          );
+          const readStream = createReadStream(artifact.path, {
+            highWaterMark: maxHighWatermarkSize,
+          }).once('error', err => {
+            onErrorOnStream(err);
+          });
+
+          if (artifact.transformers) {
+            const stats = fs.statSync(artifact.path);
+
+            const transformers = artifact.transformers(
+              artifact.path,
+              metadataPath,
+              stats,
+            );
+
+            transformers.forEach(transform => readStream.pipe(transform));
+          }
 
           zipfile.addReadStream(readStream, normalize(metadataPath));
           resolve();
