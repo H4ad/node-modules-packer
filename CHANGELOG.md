@@ -1,5 +1,17 @@
 CHANGES:
 
+# [1.1.0](https://github.com/H4ad/node-modules-packer/compare/v1.0.2...v1.1.0) (2022-08-14)
+
+
+### Bug Fixes
+
+* **bin:** fixed problem with executable permission of dev and run ([84dcb6b](https://github.com/H4ad/node-modules-packer/commit/84dcb6b83a5fe3a969a2af3993a68f8e406ea3ce))
+
+
+### Features
+
+* **run:** added path remapping for --include flag ([f199462](https://github.com/H4ad/node-modules-packer/commit/f19946262dd8472b6b00b940e728cd1c6cd3ab99))
+
 ## [1.0.2](https://github.com/H4ad/node-modules-packer/compare/v1.0.1...v1.0.2) (2022-07-28)
 
 ## [1.0.1](https://github.com/H4ad/node-modules-packer/compare/v1.0.0...v1.0.1) (2022-07-28)

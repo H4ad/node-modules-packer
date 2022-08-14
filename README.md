@@ -171,7 +171,6 @@ console.log(result.path);
 <br>
 
 <!-- commands -->
-
 * [`node-modules-packer autocomplete [SHELL]`](#node-modules-packer-autocomplete-shell)
 * [`node-modules-packer commands`](#node-modules-packer-commands)
 * [`node-modules-packer help [COMMAND]`](#node-modules-packer-help-command)
@@ -549,7 +548,7 @@ EXAMPLES
   $ node-modules-packer run /project/path -i dist
 ```
 
-_See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-packer/blob/v1.0.2/src/commands/run/index.ts)_
+_See code: [src/commands/run/index.ts](https://github.com/H4ad/node-modules-packer/blob/v1.1.0/src/commands/run/index.ts)_
 
 ## `node-modules-packer version`
 
