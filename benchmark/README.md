@@ -91,11 +91,11 @@ Summary:
 |--------------------------------|----------------------|-------------------------|
 | Npm Prune                      | 39.21s               | 29.31 MB                |
 | Npm Prune (skipping restore)   | 24.41s (61% faster)  | 29.31 MB (0% lighter)   |
-| Node Modules Packer            | 7.25s (441% faster)  | 17.44 MB (68% lighter)  |
-| Node Modules Packer (minified) | 10.20s (284% faster) | 13.19 MB (122% lighter) |
+| Node Modules Packer            | 7.25s (441% faster)  | 17.44 MB (~40% lighter) |
+| Node Modules Packer (minified) | 10.20s (284% faster) | 13.19 MB (~55% lighter) |
 
 So running this library without doing any optimization can give you a speed improvement of 441% (284% minified) and
-reducing your zip file by 68% (122% minified), you can further reduce the size of the zip [with a few more tweaks](./README.md#examples).
+reducing your zip file by ~40% (~55% minified), you can further reduce the size of the zip [with a few more tweaks](./README.md#examples).
 
 But, I don't know about you, but for me the big benefit is not having to run `npm prune --production`,
 I use Webstorm and this command makes my Webstorm re-index all node_modules making me lose more seconds of my life .

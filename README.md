@@ -29,7 +29,7 @@ lots of crazy configurations with webpack, also this library allows you to minif
 I personally created this library inspired by an internal library I created for my company to deploy our NestJS apps
 for AWS Lambda.
 With this guy I improve deployment time by up to [441% (284% minified)](./benchmark#results) and reduce the bundle
-size by up to [68% (122% minified)](./benchmark#results) with the benefit that my Webstorm doesn't go crazy with dependency indexing 
+size by up to [~40% (~55% minified)](./benchmark#results) with the benefit that my Webstorm doesn't go crazy with dependency indexing 
 every time I deploy because I no longer need to run `npm prune --production` just to get a descending build size.
 
 > Wait, you're asking me why I build and deploy the APIs on my computer instead of using CI/CD?
