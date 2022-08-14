@@ -499,17 +499,7 @@ export default class Run extends CustomCommand {
     const rootPath = resolve(process.cwd(), dir);
     const fasterZip = new FasterZip();
 
-    await fasterZip.run(rootPath, outputPath, zipArtifacts).catch(error => {
-      throw new CustomError(
-        `An error occurred while creating the zip: ${error.message}`,
-        {
-          code: 'ERR_FASTER_ZIP',
-          suggestions: [
-            "Make sure you didn't pass invalid path to files or remapping.",
-          ],
-        },
-      );
-    });
+    await fasterZip.run(rootPath, outputPath, zipArtifacts);
 
     this.logMessage(flags, 'log', 'Creating the output file... created');
   }

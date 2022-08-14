@@ -139,8 +139,14 @@ const node_modules = () =>
 
 export default class MockFsFactory {
   static DIR_PROJECT = 'project';
+  static DIR_WITH_DEPLOY_FILE = 'with_deploy_file';
   static DIR_NO_NODE_MODULES = 'no_node_modules';
   static DIR_NO_PACKAGE_LOCK_FILE = 'no_package_lock_file';
+  static DIR_EMPTY = 'dir_empty';
+  static DIR_WITH_PROTECTED_FILE = 'dir_with_protected_file';
+  static DIR_WITH_PROTECTED_FILE_INSIDE_FOLDER =
+    'dir_with_protected_file_inside_folder';
+  static DIR_OUTPUT_PROTECTED = 'dir_output_protected';
 
   static createMockFs() {
     const defaultLoadOptions = {
@@ -197,6 +203,32 @@ export default class MockFsFactory {
           defaultLoadOptions,
         ),
       },
+      [MockFsFactory.DIR_WITH_DEPLOY_FILE]: {
+        'package.json': mockfs.load(
+          resolve(__dirname, '../example/package.json'),
+          defaultLoadOptions,
+        ),
+        '.gitignore': mockfs.load(
+          resolve(__dirname, '../example/.gitignore'),
+          defaultLoadOptions,
+        ),
+        'package-lock.json': mockfs.load(
+          resolve(__dirname, '../example/package-lock.json'),
+          defaultLoadOptions,
+        ),
+        'deploy.zip': mockfs.file({
+          content: 'teste',
+        }),
+        node_modules: node_modules(),
+        src: mockfs.load(
+          resolve(__dirname, '../example/src'),
+          defaultLoadOptions,
+        ),
+        dist: mockfs.load(
+          resolve(__dirname, '../example/dist'),
+          defaultLoadOptions,
+        ),
+      },
       [MockFsFactory.DIR_NO_NODE_MODULES]: {
         'package.json': mockfs.load(
           resolve(__dirname, '../example/package.json'),
@@ -230,6 +262,29 @@ export default class MockFsFactory {
           defaultLoadOptions,
         ),
       },
+      [MockFsFactory.DIR_EMPTY]: {
+        empty: mockfs.directory(),
+      },
+      [MockFsFactory.DIR_WITH_PROTECTED_FILE]: {
+        'protected.js': mockfs.file({
+          content: 'protected',
+          mode: 0,
+        }),
+      },
+      [MockFsFactory.DIR_WITH_PROTECTED_FILE_INSIDE_FOLDER]: {
+        protected: mockfs.directory({
+          items: {
+            'protected.js': mockfs.file({
+              content: 'protected',
+              mode: 0,
+            }),
+          },
+        }),
+      },
+      [MockFsFactory.DIR_OUTPUT_PROTECTED]: mockfs.directory({
+        items: {},
+        mode: 0,
+      }),
     });
   }
 

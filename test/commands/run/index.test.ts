@@ -243,6 +243,10 @@ describe('when pack is called', () => {
         expect(ctx.stderr).to.be.empty;
 
         const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+        const createdTheDeployZip = existsSync(outputFilePath);
+
+        expect(createdTheDeployZip).to.be.eq(true);
+
         const mapFiles = await getUnzipedFilesInMap(outputFilePath);
 
         expect(mapFiles.has('node_modules/is-date-object/package.json')).to.be
@@ -480,6 +484,16 @@ describe('when pack is called', () => {
         expect(err.message).to.contain('Invalid package-lock.json');
       })
       .it('should throw error if could not find package-lock.json');
+  });
+
+  describe('remove file if already exist', () => {
+    fsTest
+      .stdout()
+      .stderr()
+      .fsmockCommand(['run', MockFsFactory.DIR_WITH_DEPLOY_FILE])
+      .it('should remove file before run', ctx => {
+        expect(ctx.stdout).to.contain('Removing old output file');
+      });
   });
 
   describe('with invalid node modules', () => {
