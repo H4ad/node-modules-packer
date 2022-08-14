@@ -537,7 +537,7 @@ FLAGS
   --output-path=<value>                   [default: ./] Specify output path for the zip file.
   --[no-]peer                             Include peer dependencies when pack node dependencies.
   --[no-]prod                             Include production dependencies when pack node dependencies.
-  --uglify                                Transform each .js file with uglify
+  --[no-]uglify                           Transform each .js file with uglify
 
 GLOBAL FLAGS
   --json  Format output as json.

@@ -475,32 +475,61 @@ describe('when pack is called', () => {
       });
   });
 
-  describe('with --uglify flag', () => {
+  describe('with --minify flag', () => {
     fsTest
       .stdout()
       .stderr()
-      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT])
-      .it('should have output file size as 4355 bytes without uglify', ctx => {
+      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '--peer', '--dev'])
+      .it('should have output file size as 7509 bytes without minify', ctx => {
         expect(ctx.stderr).to.be.empty;
 
         const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
         const stats = statSync(outputFilePath);
 
-        expect(stats.size).to.be.eq(4355);
+        expect(stats.size).to.be.eq(7509);
       });
 
     fsTest
       .stdout()
       .stderr()
-      .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '--uglify'])
-      .it('should have output file size lower than 4355 with uglify', ctx => {
+      .fsmockCommand([
+        'run',
+        MockFsFactory.DIR_PROJECT,
+        '--minify',
+        '--peer',
+        '--dev',
+      ])
+      .it('should have output file size equal to 7098 with minify', ctx => {
         expect(ctx.stderr).to.be.empty;
 
         const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
         const stats = statSync(outputFilePath);
 
-        expect(stats.size).to.be.below(4355);
+        expect(stats.size).to.be.eq(7098);
       });
+
+    fsTest
+      .stdout()
+      .stderr()
+      .fsmockCommand([
+        'run',
+        MockFsFactory.DIR_PROJECT,
+        '--minify',
+        '--minify-keep-names',
+        '--peer',
+        '--dev',
+      ])
+      .it(
+        'should have output file size equal to 7394 with minify and keep names',
+        ctx => {
+          expect(ctx.stderr).to.be.empty;
+
+          const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+          const stats = statSync(outputFilePath);
+
+          expect(stats.size).to.be.eq(7394);
+        },
+      );
   });
 
   describe('with invalid lock file', () => {
@@ -562,6 +591,8 @@ describe('when pack is called', () => {
           dev: true,
           peer: false,
           optional: false,
+          minify: true,
+          minifyKeepNames: true,
           outputPath: './test',
           outputFile: 'result.zip',
         });
@@ -585,6 +616,8 @@ describe('when pack is called', () => {
           './test',
           '--output-file',
           'result.zip',
+          '--minify',
+          '--minify-keep-names',
         ]);
       });
   });

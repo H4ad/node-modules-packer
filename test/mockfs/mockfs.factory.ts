@@ -103,38 +103,38 @@ const node_modules = () => {
       'is-string': mockfs.directory({
         items: {
           'CHANGELOG.md': mockfs.file({
-            content: '',
+            content: readFile('is-string/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: '',
+            content: readFile('is-string/index.js'),
           }),
           LICENSE: mockfs.file({
-            content: '',
+            content: readFile('is-string/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: '',
+            content: readFile('is-string/package.json'),
           }),
           'README.md': mockfs.file({
-            content: '',
+            content: readFile('is-string/README.md'),
           }),
         },
       }),
       'kind-of': mockfs.directory({
         items: {
           'CHANGELOG.md': mockfs.file({
-            content: '',
+            content: readFile('kind-of/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: '',
+            content: 'export batata = 32323; while',
           }),
           LICENSE: mockfs.file({
-            content: '',
+            content: readFile('kind-of/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: '',
+            content: readFile('kind-of/package.json'),
           }),
           'README.md': mockfs.file({
-            content: '',
+            content: readFile('kind-of/README.md'),
           }),
         },
       }),
@@ -181,6 +181,13 @@ export default class MockFsFactory {
           ),
           ansicolors: mockfs.load(
             resolve(__dirname, '../../node_modules/ansicolors'),
+          ),
+          esbuild: mockfs.load(
+            resolve(__dirname, '../../node_modules/esbuild'),
+          ),
+          // to make esbuild work
+          'esbuild-linux-64': mockfs.load(
+            resolve(__dirname, '../../node_modules/esbuild-linux-64'),
           ),
         },
       }),
