@@ -452,14 +452,20 @@ export default class Run extends CustomCommand {
     const includeFiles = Array.isArray(flags.include) ? flags.include : [];
 
     for (const includeFile of includeFiles) {
-      const includeFilePath = join(dir, includeFile);
+      const [relativePath, pathMappedTo] = includeFile.split(':');
+
+      const includeFilePath = join(dir, relativePath);
       const stats = statSync(includeFilePath);
+      const metadataPath = pathMappedTo
+        ? resolve('/', pathMappedTo).slice(1)
+        : undefined;
 
       const type = stats.isDirectory() ? 'directory' : 'file';
 
       artifacts.push({
         path: includeFilePath,
         name: includeFile,
+        metadataPath,
         type,
       });
     }

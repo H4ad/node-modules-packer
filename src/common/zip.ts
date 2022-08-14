@@ -1,10 +1,14 @@
 import fs, { createReadStream, createWriteStream } from 'fs';
-import { join, relative } from 'path';
+import { join, normalize, relative } from 'path';
 import { ZipFile } from 'yazl';
 
 export interface ZipArtifact {
   path: string;
+  /**
+   * @deprecated It will be removed in the next versions because it is not used
+   */
   name: string;
+  metadataPath?: string;
   type: 'file' | 'directory';
   shouldIgnore?: (fileName: string) => boolean;
 }
@@ -15,40 +19,23 @@ export class FasterZip {
     outputPath: string,
     zipArtifacts: ZipArtifact[],
   ): Promise<void> {
-    const zipfile = new ZipFile();
-    const stream = createWriteStream(outputPath);
-
-    zipfile.outputStream.pipe(stream);
-
-    for (const artifact of zipArtifacts) {
-      await new Promise<void>((resolve, reject) => {
-        if (artifact.type === 'directory') {
-          this.readdirAndAddToZip(
-            zipfile,
-            rootPath,
-            artifact,
-            artifact.path,
-            err => {
-              if (err) reject(err);
-              else resolve();
-            },
-          );
-        } else {
-          const metadataPath = relative(rootPath, artifact.path);
-          const readStream = createReadStream(artifact.path);
-
-          zipfile.addReadStream(readStream, metadataPath);
-          resolve();
-        }
-      });
-    }
-
-    zipfile.end();
-
     await new Promise<void>((resolve, reject) => {
-      zipfile.outputStream.once('error', err => reject(err));
+      (async () => {
+        const zipfile = new ZipFile();
+        const stream = createWriteStream(outputPath).once('error', reject);
 
-      stream.once('error', err => reject(err)).once('close', () => resolve());
+        zipfile.outputStream.pipe(stream);
+
+        for (const artifact of zipArtifacts) {
+          await this.handleArtifact(artifact, zipfile, rootPath, reject).catch(
+            reject,
+          );
+        }
+
+        zipfile.end();
+
+        stream.once('error', reject).once('close', () => resolve());
+      })();
     });
   }
 
@@ -57,6 +44,7 @@ export class FasterZip {
     rootPath: string,
     source: ZipArtifact,
     path: string,
+    onErrorOnStream: (reason?: any) => void,
     callback: (err: Error | null) => void,
   ) {
     fs.readdir(path, (err, files) => {
@@ -78,6 +66,7 @@ export class FasterZip {
               rootPath,
               source,
               filePath,
+              onErrorOnStream,
               __err => {
                 if (__err) return callback(__err);
 
@@ -91,10 +80,14 @@ export class FasterZip {
               !source.shouldIgnore ||
               (source.shouldIgnore && !source.shouldIgnore(filePath))
             ) {
-              const metadataPath = relative(rootPath, filePath);
-              const readStream = createReadStream(filePath);
+              const metadataPath = source.metadataPath
+                ? filePath.replace(source.path, source.metadataPath)
+                : relative(rootPath, filePath);
+              const readStream = createReadStream(filePath).once('error', err =>
+                onErrorOnStream(err),
+              );
 
-              zipFile.addReadStream(readStream, metadataPath);
+              zipFile.addReadStream(readStream, normalize(metadataPath));
             }
 
             pending -= 1;
@@ -103,6 +96,46 @@ export class FasterZip {
           }
         });
       });
+    });
+  }
+
+  private async handleArtifact(
+    artifact: ZipArtifact,
+    zipfile: ZipFile,
+    rootPath: string,
+    onErrorOnStream: (reason?: any) => void,
+  ): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      try {
+        if (artifact.type === 'directory') {
+          this.readdirAndAddToZip(
+            zipfile,
+            rootPath,
+            artifact,
+            artifact.path,
+            onErrorOnStream,
+            err => {
+              if (err) reject(err);
+              else resolve();
+            },
+          );
+        } else {
+          const metadataPath = artifact.metadataPath
+            ? artifact.path.replace(artifact.path, artifact.metadataPath)
+            : relative(rootPath, artifact.path);
+          const readStream = createReadStream(artifact.path).once(
+            'error',
+            err => {
+              onErrorOnStream(err);
+            },
+          );
+
+          zipfile.addReadStream(readStream, normalize(metadataPath));
+          resolve();
+        }
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 }

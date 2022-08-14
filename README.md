@@ -82,6 +82,12 @@ Include more files in the `deploy.zip`:
 node-modules-packer run ./ -i dist -i package.json -i package-lock.json
 ```
 
+During including, if you need to remap, you can use `:` between the paths:
+
+```bash
+node-modules-packer run ./ -i dist:build -i package.json:dist/package.json
+```
+
 Exclude unwanted file extensions from node_modules:
 
 ```bash
