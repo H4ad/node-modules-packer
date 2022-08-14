@@ -8,7 +8,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@h4ad/node-modules-packer": "^1.0.2",
+    "@h4ad/node-modules-packer": "file:../",
     "archiver": "^5.3.1"
   }
 }

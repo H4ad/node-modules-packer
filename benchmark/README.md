@@ -25,9 +25,13 @@ And actions prove more than words, here are my numbers:
 
 ## How to Run
 
-First, install dependencies with:
+First, install dependencies and build the library with:
 
 ```bash
+# inside root folder
+npm ci
+npm run build
+# inside benchmark folder
 npm ci
 ```
 
@@ -45,42 +49,53 @@ Npm Prune Results:
 
 | (index) | endTime | outputSize |
 |---------|---------|------------|
-| 0       | 39.13s  | 29.31 MB   |
-| 1       | 37.59s  | 29.31 MB   |
-| 2       | 36.18s  | 29.31 MB   |
-| 3       | 36.36s  | 29.31 MB   |
-| 4       | 36.09s  | 29.31 MB   |
+| 0       | 38.24s  | 29.31 MB   |
+| 1       | 39.64s  | 29.31 MB   |
+| 2       | 40.44s  | 29.31 MB   |
+| 3       | 41.91s  | 29.31 MB   |
+| 4       | 35.80s  | 29.31 MB   |
 
 Npm Prune (skipping restore) Results:
 
 | (index) | endTime | outputSize |
 |---------|---------|------------|
-| 0       | 24.25s  | 29.31 MB   |
-| 1       | 24.10s  | 29.31 MB   |
-| 2       | 23.79s  | 29.31 MB   |
-| 3       | 23.66s  | 29.31 MB   |
-| 4       | 23.96s  | 29.31 MB   |
+| 0       | 23.56s  | 29.31 MB   |
+| 1       | 28.76s  | 29.31 MB   |
+| 2       | 23.43s  | 29.31 MB   |
+| 3       | 23.22s  | 29.31 MB   |
+| 4       | 23.09s  | 29.31 MB   |
 
 Node Modules Packer Results:
 
 | (index) | endTime | outputSize |
 |---------|---------|------------|
-| 0       | 7.12s   | 17.44 MB   |
-| 1       | 7.04s   | 17.44 MB   |
-| 2       | 6.91s   | 17.44 MB   |
-| 3       | 6.92s   | 17.44 MB   |
-| 4       | 6.80s   | 17.44 MB   |
+| 0       | 7.48s   | 17.44 MB   |
+| 1       | 7.07s   | 17.44 MB   |
+| 2       | 7.04s   | 17.44 MB   |
+| 3       | 7.28s   | 17.44 MB   |
+| 4       | 7.39s   | 17.44 MB   |
+
+Node Modules Packer (minified) Results:
+
+| (index) | endTime | outputSize |
+|---------|---------|------------|
+| 0       | 10.13s  | 13.19 MB   |
+| 1       | 10.03s  | 13.19 MB   |
+| 2       | 9.99s   | 13.19 MB   |
+| 3       | 10.45s  | 13.19 MB   |
+| 4       | 10.38s  | 13.19 MB   |
 
 Summary:
 
-| suite                        | endTime (mean)      | outputSize (mean)      |
-|------------------------------|---------------------|------------------------|
-| Npm Prune                    | 37.07s              | 29.31 MB               |
-| Npm Prune (skipping restore) | 23.96s (55% faster) | 29.31 MB (0% lighter)  |
-| Node Modules Packer          | 6.96s (432% faster) | 17.44 MB (68% lighter) |
+| suite                          | endTime (mean)       | outputSize (mean)       |
+|--------------------------------|----------------------|-------------------------|
+| Npm Prune                      | 39.21s               | 29.31 MB                |
+| Npm Prune (skipping restore)   | 24.41s (61% faster)  | 29.31 MB (0% lighter)   |
+| Node Modules Packer            | 7.25s (441% faster)  | 17.44 MB (68% lighter)  |
+| Node Modules Packer (minified) | 10.20s (284% faster) | 13.19 MB (122% lighter) |
 
-So running this library without doing any optimization can give you a speed improvement of 432% and
-reducing your zip file by 68%, you can further reduce the size of the zip [with a few more tweaks](./README.md#examples).
+So running this library without doing any optimization can give you a speed improvement of 441% (284% minified) and
+reducing your zip file by 68% (122% minified), you can further reduce the size of the zip [with a few more tweaks](./README.md#examples).
 
-But, I don't know about you, but for me the big benefit is not having to run `npm prune --production`, 
+But, I don't know about you, but for me the big benefit is not having to run `npm prune --production`,
 I use Webstorm and this command makes my Webstorm re-index all node_modules making me lose more seconds of my life .
