@@ -29,6 +29,10 @@ jobs:
       - name: Install Lib Dependencies
         run: npm ci
 
+      - name: Install Testing Lib Dependencies
+        working-directory: test/example
+        run: npm ci
+
       - name: Build
         run: npm run build --if-present
 
