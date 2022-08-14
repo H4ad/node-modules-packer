@@ -9,7 +9,7 @@ const node_modules = () => {
   return mockfs.directory({
     items: {
       '.package-lock.json': mockfs.file({
-        content: readFile('.package-lock.json'),
+        content: '',
       }),
       'has-symbols': mockfs.directory({
         items: {
