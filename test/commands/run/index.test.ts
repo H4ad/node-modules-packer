@@ -6,6 +6,10 @@ import MockFsFactory from '../../mockfs/mockfs.factory';
 import { fsTest } from '../../mockfs/test';
 import { getUnzipedFilesInMap } from '../../mockfs/unzip';
 
+const dependenciesWithPeerAndDevSize = 4414;
+const minifyDependenciesSize = 3930;
+const minifyDependenciesWithKeepNamesSize = 4226;
+
 describe('when pack is called', () => {
   describe('with only project folder', () => {
     fsTest
@@ -249,6 +253,9 @@ describe('when pack is called', () => {
 
         const mapFiles = await getUnzipedFilesInMap(outputFilePath);
 
+        expect(
+          mapFiles.has('node_modules/@h4ad/serverless-adapter/package.json'),
+        ).to.be.true;
         expect(mapFiles.has('node_modules/is-date-object/package.json')).to.be
           .true;
       });
@@ -265,6 +272,9 @@ describe('when pack is called', () => {
           const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
           const mapFiles = await getUnzipedFilesInMap(outputFilePath);
 
+          expect(
+            mapFiles.has('node_modules/@h4ad/serverless-adapter/package.json'),
+          ).to.be.not.be.true;
           expect(mapFiles.has('node_modules/is-date-object/package.json')).to
             .not.be.true;
         },
@@ -284,6 +294,9 @@ describe('when pack is called', () => {
           const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
           const mapFiles = await getUnzipedFilesInMap(outputFilePath);
 
+          expect(
+            mapFiles.has('node_modules/@h4ad/serverless-adapter/README.md'),
+          ).to.be.false;
           expect(mapFiles.has('node_modules/is-date-object/README.md')).to.be
             .false;
         },
@@ -305,6 +318,9 @@ describe('when pack is called', () => {
           const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
           const mapFiles = await getUnzipedFilesInMap(outputFilePath);
 
+          expect(
+            mapFiles.has('node_modules/@h4ad/serverless-adapter/README.md'),
+          ).to.be.true;
           expect(mapFiles.has('node_modules/is-date-object/README.md')).to.be
             .true;
         },
@@ -480,14 +496,20 @@ describe('when pack is called', () => {
       .stdout()
       .stderr()
       .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '--peer', '--dev'])
-      .it('should have output file size as 7509 bytes without minify', ctx => {
-        expect(ctx.stderr).to.be.empty;
+      .it(
+        `should have output file size as ${dependenciesWithPeerAndDevSize} bytes without minify`,
+        async ctx => {
+          expect(ctx.stderr).to.be.empty;
 
-        const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
-        const stats = statSync(outputFilePath);
+          const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
 
-        expect(stats.size).to.be.eq(7509);
-      });
+          const stats = statSync(outputFilePath);
+
+          expect(stats.size).to.be.eq(
+            dependenciesWithPeerAndDevSize,
+          );
+        },
+      );
 
     fsTest
       .stdout()
@@ -499,14 +521,17 @@ describe('when pack is called', () => {
         '--peer',
         '--dev',
       ])
-      .it('should have output file size equal to 7098 with minify', ctx => {
-        expect(ctx.stderr).to.be.empty;
+      .it(
+        `should have output file size equal to ${minifyDependenciesSize} with minify`,
+        ctx => {
+          expect(ctx.stderr).to.be.empty;
 
-        const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
-        const stats = statSync(outputFilePath);
+          const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
+          const stats = statSync(outputFilePath);
 
-        expect(stats.size).to.be.eq(7098);
-      });
+          expect(stats.size).to.be.eq(minifyDependenciesSize);
+        },
+      );
 
     fsTest
       .stdout()
@@ -520,14 +545,14 @@ describe('when pack is called', () => {
         '--dev',
       ])
       .it(
-        'should have output file size equal to 7394 with minify and keep names',
+        `should have output file size equal to ${minifyDependenciesWithKeepNamesSize} with minify and keep names`,
         ctx => {
           expect(ctx.stderr).to.be.empty;
 
           const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
           const stats = statSync(outputFilePath);
 
-          expect(stats.size).to.be.eq(7394);
+          expect(stats.size).to.be.eq(minifyDependenciesWithKeepNamesSize);
         },
       );
   });

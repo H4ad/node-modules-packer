@@ -23,7 +23,7 @@ const node_modules = () => {
             content: readFile('has-symbols/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: readFile('has-symbols/package.json'),
+            content: '{}',
           }),
           'README.md': mockfs.file({
             content: readFile('has-symbols/README.md'),
@@ -45,7 +45,7 @@ const node_modules = () => {
             content: readFile('has-tostringtag/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: readFile('has-tostringtag/package.json'),
+            content: '{}',
           }),
           'README.md': mockfs.file({
             content: readFile('has-tostringtag/README.md'),
@@ -112,7 +112,7 @@ const node_modules = () => {
             content: readFile('is-string/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: readFile('is-string/package.json'),
+            content: '{}',
           }),
           'README.md': mockfs.file({
             content: readFile('is-string/README.md'),
@@ -125,16 +125,40 @@ const node_modules = () => {
             content: readFile('kind-of/CHANGELOG.md'),
           }),
           'index.js': mockfs.file({
-            content: 'export batata = 32323; while',
+            content: readFile('kind-of/index.js'),
           }),
           LICENSE: mockfs.file({
             content: readFile('kind-of/LICENSE'),
           }),
           'package.json': mockfs.file({
-            content: readFile('kind-of/package.json'),
+            content: '{}',
           }),
           'README.md': mockfs.file({
             content: readFile('kind-of/README.md'),
+          }),
+        },
+      }),
+      '@h4ad': mockfs.directory({
+        items: {
+          'serverless-adapter': mockfs.directory({
+            items: {
+              'README.md': mockfs.file({
+                content: readFile('@h4ad/serverless-adapter/README.md'),
+              }),
+              lib: mockfs.directory({
+                items: {
+                  'index.js': mockfs.file({
+                    content: readFile('@h4ad/serverless-adapter/lib/index.js'),
+                  }),
+                },
+              }),
+              LICENSE: mockfs.file({
+                content: readFile('@h4ad/serverless-adapter/LICENSE'),
+              }),
+              'package.json': mockfs.file({
+                content: '{}',
+              }),
+            },
           }),
         },
       }),
