@@ -6,9 +6,9 @@ import MockFsFactory from '../../mockfs/mockfs.factory';
 import { fsTest } from '../../mockfs/test';
 import { getUnzipedFilesInMap } from '../../mockfs/unzip';
 
-const dependenciesWithPeerAndDevSize = 4414;
-const minifyDependenciesSize = 3930;
-const minifyDependenciesWithKeepNamesSize = 4226;
+const dependenciesWithPeerAndDevSize = 5787;
+const minifyDependenciesSize = 5043;
+const minifyDependenciesWithKeepNamesSize = 5464;
 
 describe('when pack is called', () => {
   describe('with only project folder', () => {
@@ -498,16 +498,14 @@ describe('when pack is called', () => {
       .fsmockCommand(['run', MockFsFactory.DIR_PROJECT, '--peer', '--dev'])
       .it(
         `should have output file size as ${dependenciesWithPeerAndDevSize} bytes without minify`,
-        async ctx => {
+        ctx => {
           expect(ctx.stderr).to.be.empty;
 
           const outputFilePath = join(MockFsFactory.DIR_PROJECT, 'deploy.zip');
 
           const stats = statSync(outputFilePath);
 
-          expect(stats.size).to.be.eq(
-            dependenciesWithPeerAndDevSize,
-          );
+          expect(stats.size).to.be.eq(dependenciesWithPeerAndDevSize);
         },
       );
 
@@ -645,5 +643,16 @@ describe('when pack is called', () => {
           '--minify-keep-names',
         ]);
       });
+  });
+
+  describe('test paths in win32', () => {
+    it('should handle correctly when path is win32 using fix path', () => {
+      const runCommand = new Run([], {} as any);
+      const fixPath = runCommand['fixPath'];
+
+      expect(
+        fixPath('node_modules\\@h4ad\\serverless-adapter\\lib\\index.js'),
+      ).to.be.eq('node_modules/@h4ad/serverless-adapter/lib/index.js');
+    });
   });
 });
