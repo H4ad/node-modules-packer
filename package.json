@@ -1,6 +1,6 @@
 {
   "name": "@h4ad/node-modules-packer",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.ts",
