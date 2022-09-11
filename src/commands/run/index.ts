@@ -409,7 +409,7 @@ export default class Run extends CustomCommand {
     this.logMessage(flags, 'debug', 'Using following ignored node paths:');
     this.logMessage(flags, 'debug', JSON.stringify(ignoredNodePaths));
 
-    return ignoredNodePaths;
+    return ignoredNodePaths.map(this.fixPath.bind(this));
   }
 
   protected getIncludedNodePaths(flags: typeof Run.flags): string[] {
@@ -421,7 +421,7 @@ export default class Run extends CustomCommand {
     this.logMessage(flags, 'debug', 'Using following included node paths:');
     this.logMessage(flags, 'debug', JSON.stringify(includedNodePaths));
 
-    return includedNodePaths;
+    return includedNodePaths.map(this.fixPath.bind(this));
   }
 
   protected getShouldIgnoreNodeFileCallback(
@@ -435,7 +435,9 @@ export default class Run extends CustomCommand {
       if (ignoredFileExtensions.some(ext => filename.endsWith(ext)))
         return true;
 
-      const filenameNodePath = relative(resolve(dir, 'node_modules'), filename);
+      const filenameNodePath = this.fixPath(
+        relative(resolve(dir, 'node_modules'), filename),
+      );
 
       if (includedNodePaths.some(path => filenameNodePath.startsWith(path)))
         return false;
@@ -505,9 +507,9 @@ export default class Run extends CustomCommand {
       const type = stats.isDirectory() ? 'directory' : 'file';
 
       artifacts.push({
-        path: includeFilePath,
-        name: includeFile,
-        metadataPath,
+        path: this.fixPath(includeFilePath),
+        name: this.fixPath(includeFile),
+        metadataPath: metadataPath ? this.fixPath(metadataPath) : metadataPath,
         transformer,
         type,
       });
@@ -556,6 +558,10 @@ export default class Run extends CustomCommand {
     if (flags.quiet) return;
 
     this[type](message, args);
+  }
+
+  protected fixPath(path: string): string {
+    return path.replace(/\\\\/g, '/').replace(/\\/g, '/');
   }
 
   //#endregion

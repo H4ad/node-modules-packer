@@ -85,7 +85,7 @@
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.1.0",
     "@oclif/plugin-version": "^1.1.1",
-    "esbuild": "^0.15.3",
+    "esbuild": "~0.15.7",
     "rimraf": "^3.0.2",
     "semver": "^7.3.7",
     "yazl": "^2.5.1"
