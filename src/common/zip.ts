@@ -1,7 +1,12 @@
-import { Stats, createReadStream, createWriteStream } from 'fs';
+import { Stats } from 'fs';
 import { join, normalize, relative } from 'path';
 import { ZipFile } from 'yazl';
-import { readdirAsync, statAsync } from './fs';
+import {
+  readdirAsync,
+  safeCreateReadStream,
+  safeCreateWriteStream,
+  statAsync,
+} from './fs';
 import { StringStream } from './string-stream';
 import { streamToUInt8Array } from './string-to-uint';
 
@@ -31,7 +36,7 @@ export class FasterZip {
     await new Promise<void>((resolve, reject) => {
       (async () => {
         const zipfile = new ZipFile();
-        const stream = createWriteStream(outputPath).once('error', reject);
+        const stream = safeCreateWriteStream(outputPath).once('error', reject);
 
         zipfile.outputStream.pipe(stream);
 
@@ -104,7 +109,7 @@ export class FasterZip {
     const transformer =
       source.transformer && source.transformer(filePath, metadataPath);
 
-    const readStream = createReadStream(filePath).once('error', err =>
+    const readStream = safeCreateReadStream(filePath).once('error', err =>
       onErrorOnStream(err),
     );
 
