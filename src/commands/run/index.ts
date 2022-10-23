@@ -1,6 +1,5 @@
 //#region Imports
 
-import { existsSync, mkdirSync, readFileSync, statSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import {
   DependencyInfo,
@@ -15,6 +14,12 @@ import rimraf from 'rimraf';
 import CustomCommand from '../../common/custom-command';
 import CustomError from '../../common/custom-error';
 import { defaultIgnoredFileExtensions } from '../../common/extensions';
+import {
+  safeExistsSync,
+  safeMkdirSync,
+  safeReadFileSync,
+  safeStatSync,
+} from '../../common/fs';
 import { HeadlessOptions } from '../../common/headless';
 import { OutputInfo } from '../../common/output-info';
 import { FasterZip, TransformAsyncCode, ZipArtifact } from '../../common/zip';
@@ -231,7 +236,7 @@ export default class Run extends CustomCommand {
 
     await this.zipDirectory(flags, dir, zipArtifacts, outputFilePath);
 
-    const size = statSync(outputFilePath).size;
+    const size = safeStatSync(outputFilePath).size;
 
     return { size, file: outputFile, path: outputPath };
   }
@@ -245,7 +250,7 @@ export default class Run extends CustomCommand {
 
     const nodeModulesFolderPath = join(dir, 'node_modules');
 
-    if (existsSync(nodeModulesFolderPath)) {
+    if (safeExistsSync(nodeModulesFolderPath)) {
       this.logMessage(flags, 'log', 'Checking node folder... found');
       return;
     }
@@ -270,17 +275,17 @@ export default class Run extends CustomCommand {
     const resolvedOutputPath = resolve(dir, outputPath);
     const outputFilePath = join(resolvedOutputPath, outputFile);
 
-    if (!existsSync(resolvedOutputPath)) {
+    if (!safeExistsSync(resolvedOutputPath)) {
       this.logMessage(
         flags,
         'log',
         `Not found folder in ${outputPath}, creating new one...`,
       );
 
-      mkdirSync(resolvedOutputPath, { recursive: true });
+      safeMkdirSync(resolvedOutputPath, { recursive: true });
     }
 
-    if (!existsSync(outputFilePath)) {
+    if (!safeExistsSync(outputFilePath)) {
       this.logMessage(
         flags,
         'debug',
@@ -357,7 +362,7 @@ export default class Run extends CustomCommand {
   ): ExtractorContainer {
     const packageLockFilePath = join(dir, 'package-lock.json');
 
-    if (existsSync(packageLockFilePath)) {
+    if (safeExistsSync(packageLockFilePath)) {
       this.logMessage(
         flags,
         'debug',
@@ -370,7 +375,7 @@ export default class Run extends CustomCommand {
       );
 
       return new NpmExtractor().parse(
-        readFileSync(packageLockFilePath).toString('utf-8'),
+        safeReadFileSync(packageLockFilePath).toString('utf-8'),
       );
     }
 
@@ -499,7 +504,7 @@ export default class Run extends CustomCommand {
       const [relativePath, pathMappedTo] = includeFile.split(':');
 
       const includeFilePath = join(dir, relativePath);
-      const stats = statSync(includeFilePath);
+      const stats = safeStatSync(includeFilePath);
       const metadataPath = pathMappedTo
         ? resolve('/', pathMappedTo).slice(1)
         : undefined;
