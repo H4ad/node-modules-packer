@@ -1,5 +1,12 @@
 CHANGES:
 
+## [1.2.2](https://github.com/H4ad/node-modules-packer/compare/v1.2.1...v1.2.2) (2022-10-23)
+
+
+### Bug Fixes
+
+* **graceful-fs:** added to solve issues with too many open files ([58609ca](https://github.com/H4ad/node-modules-packer/commit/58609ca18ba0f962efbaa53d523650e18e8d5001))
+
 ## [1.2.1](https://github.com/H4ad/node-modules-packer/compare/v1.2.0...v1.2.1) (2022-09-11)
 
 
