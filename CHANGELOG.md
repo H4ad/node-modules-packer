@@ -1,5 +1,13 @@
 CHANGES:
 
+# [1.3.0](https://github.com/H4ad/node-modules-packer/compare/v1.2.2...v1.3.0) (2022-12-04)
+
+
+### Features
+
+* **nodejs14:** dropped support for nodejs 12.x ([e9056f7](https://github.com/H4ad/node-modules-packer/commit/e9056f7c0d78e88ef45d9b904d7bf79664be6a17))
+* **npm-v9:** bump version of dependency extractor ([c42e7aa](https://github.com/H4ad/node-modules-packer/commit/c42e7aaeda681e07b44eed2c3f28606ecb5c91ee))
+
 ## [1.2.2](https://github.com/H4ad/node-modules-packer/compare/v1.2.1...v1.2.2) (2022-10-23)
 
 
