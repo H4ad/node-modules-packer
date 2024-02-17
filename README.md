@@ -12,7 +12,7 @@
 </p>
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![npm package][npm-img]][npm-url]
+[![npm package][npm-img]][npm-url] E46
 [![Build Status][build-img]][build-url]
 [![Downloads][downloads-img]][downloads-url]
 [![Issues][issues-img]][issues-url]
